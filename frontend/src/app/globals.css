@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-warning-critical: #FF0000;
+  --color-warning-high: #FFA100;
+  --color-warning-medium: #EAFF00;
+  --color-warning-low: #4DE700;
+}
+
+.animate {
+  @apply ease-in-out duration-300;
+}
+
+.glass-effect {
+  @apply border-2 bg-linear-to-b border-white from-[#F6F7FD] via-[#F8FAFE] to-[#FFF];
+}
+
+.glass-effect-2 {
+  @apply border-2 border-white bg-white/30;
+}
+
+.login-field {
+  @apply border border-white/70 bg-white/20 rounded-lg text-white w-full py-1.5 px-2 focus:inset-0 focus:outline-none;
+}
+
+.logo-dimension {
+  @apply w-auto h-10 p-2 rounded-full;
+}
+
+.logo-container {
+  @apply flex flex-col justify-center items-center space-y-2 p-2 cursor-pointer rounded-2xl hover:bg-white/50;
+}
+
+.main-container {
+  @apply relative flex flex-col min-h-full py-5 px-7;
+}
+
+.table-detail-tab {
+  @apply font-bold text-sm rounded-md lg:rounded-lg lg:py-2 lg:px-4;
+}
