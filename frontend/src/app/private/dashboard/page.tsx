@@ -1,6 +1,6 @@
 "use client";
 
-import { Workflow, Server, Container, Database, Search } from "lucide-react";
+import { Workflow, Server, Container, Database } from "lucide-react";
 
 import type { EChartsOption } from 'echarts';
 
@@ -72,7 +72,7 @@ export default function Dashboard() {
             <TopBar/>
             <section className="space-y-1 shrink-0">
                 <h1 className="font-semibold text-lg">Good Morning, Zick</h1>
-                <p className="">Here's what is happening with your infrastructure.</p>
+                <p className="">Here&apos;s what is happening with your infrastructure.</p>
             </section>
             <section className="grid grid-cols-[repeat(4,1fr)] grid-rows-[repeat(8,100px)] min-h-full flex-1 gap-3 mt-5">
                 <aside className="row-start-1 row-span-1 col-start-1 col-span-4 rounded-xl p-3 h-full">
