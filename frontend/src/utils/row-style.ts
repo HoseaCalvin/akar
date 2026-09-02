@@ -21,6 +21,8 @@ export function getRowBackgroundColor(level: Level) {
       return 'bg-red-50 border-red-100';
     case 'High':
       return 'bg-amber-50 border-amber-100';
+    case 'Medium':
+      return 'bg-yellow-50 border-yellow-100';
     case 'Low':
       return 'bg-white border-gray-100';
     default:
@@ -34,6 +36,8 @@ export function getDescriptionColor(level: Level) {
       return 'text-red-500';
     case 'High':
       return 'text-yellow-400';
+    case 'Medium':
+      return 'text-yellow-600';
     case 'Low':
       return 'text-gray-400';
     default:
@@ -47,6 +51,8 @@ export function getBadgeColor(level: Level) {
       return 'bg-red-100';
     case 'High':
       return 'bg-amber-100';
+    case 'Medium':
+      return 'bg-yellow-100';
     case 'Low':
       return 'bg-green-50';
     default:
@@ -60,6 +66,8 @@ export function getBadgeTextColor(status: Level) {
       return 'text-warning-critical';
     case 'High':
       return 'text-warning-high';
+    case 'Medium':
+      return 'text-yellow-700';
     case 'Low':
       return 'text-warning-low';
     default:
