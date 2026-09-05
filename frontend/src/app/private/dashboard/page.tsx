@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Workflow, Server, Container, Database } from "lucide-react";
+import { Workflow, Server, Container, Database, Layers } from "lucide-react";
 import type { EChartsOption } from "echarts";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
@@ -40,6 +40,7 @@ export default function Dashboard() {
         data: [
           { name: "Critical", value: data.health.critical },
           { name: "High", value: data.health.high },
+          { name: "Medium", value: data.health.medium },
           { name: "Low", value: data.health.low },
         ],
         label: { formatter: "{b}: {d}%" },
@@ -86,11 +87,12 @@ export default function Dashboard() {
       </section>
       <section className="grid grid-cols-[repeat(4,1fr)] grid-rows-[repeat(8,100px)] min-h-full flex-1 gap-3 mt-5">
         <aside className="row-start-1 row-span-1 col-start-1 col-span-4 rounded-xl p-3 h-full">
-          <div className="flex justify-around items-center w-full h-full xl:px-4.5">
+          <div className="grid h-full w-full grid-cols-2 items-center gap-3 md:grid-cols-3 xl:grid-cols-5 xl:px-4.5">
             <Stat icon={<Workflow className="bg-blue-100 w-auto h-12 rounded-lg p-1.5" fill="#0045FF" stroke="#FFF" strokeWidth={1.5} />} value={data.counts.nodes} label="Nodes" />
             <Stat icon={<Server className="bg-green-100 w-auto h-12 rounded-lg p-1.5" fill="#12B200" strokeWidth={1.5} stroke="#FFF" />} value={data.counts.pods} label="Pods" />
-            <Stat icon={<Container className="bg-purple-100 w-auto h-12 rounded-lg p-1.5" fill="#6C00B4" strokeWidth={1.5} stroke="#FFF" />} value={data.counts.containers} label="Containers" />
+            <Stat icon={<Container className="bg-purple-100 w-auto h-12 rounded-lg p-1.5" fill="#6C00B4" strokeWidth={1.5} stroke="#FFF" />} value={data.counts.deployments} label="Deployments" />
             <Stat icon={<Database className="bg-yellow-100 w-auto h-12 rounded-lg p-1.5" fill="#FFC72D" strokeWidth={1.5} stroke="#FFF" />} value={data.counts.services} label="Services" />
+            <Stat icon={<Layers className="bg-orange-100 w-auto h-12 rounded-lg p-1.5" fill="#F97316" strokeWidth={1.5} stroke="#FFF" />} value={data.counts.namespaces} label="Namespaces" />
           </div>
         </aside>
         <aside className="row-start-2 row-span-4 col-start-1 col-span-3 glass-effect-2 rounded-xl p-3 h-full">
