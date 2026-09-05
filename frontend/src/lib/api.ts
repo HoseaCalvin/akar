@@ -3,12 +3,14 @@ import {
   MOCK_INCIDENT_ID,
   MOCK_RESOURCE_ID,
   mockDashboard,
+  mockEvidence,
   mockIncidentQueue,
   mockIncidentTimeline,
   mockInvestigation,
   mockInventory,
   mockNodes,
   mockPods,
+  mockRemediation,
   mockResourceDetail,
   mockServices,
   mockTimelineEventDetail,
@@ -17,6 +19,7 @@ import type {
   ApplyActionResult,
   DashboardSummary,
   DirectoryPage,
+  EvidencePage,
   IncidentDetail,
   IncidentQueue,
   IncidentTimeline,
@@ -24,6 +27,7 @@ import type {
   Investigation,
   NodeItem,
   PodItem,
+  RemediationPage,
   ResourceDetail,
   ResourceKind,
   ServiceItem,
@@ -40,6 +44,8 @@ import type {
  * GET  /api/incidents/:id/timeline/:eventId
  * GET  /api/incidents/:id/investigation
  * POST /api/incidents/:id/actions/:actionId/apply
+ * GET  /api/evidence?q=&type=
+ * GET  /api/remediation?q=&status=
  * GET  /api/monitor/inventory?q=
  * GET  /api/monitor/pods?q=
  * GET  /api/monitor/nodes?q=
@@ -105,11 +111,12 @@ async function request<T>(
     });
 
     if (!response.ok) {
-      let body: unknown = null;
+      const raw = await response.text();
+      let body: unknown = raw;
       try {
-        body = await response.json();
+        body = raw ? JSON.parse(raw) : null;
       } catch {
-        body = await response.text();
+        body = raw;
       }
 
       if (fallback !== undefined && MOCK_MODE !== "false") {
@@ -213,6 +220,52 @@ export const api = {
           ok: true,
           message: "Action recorded (mock)",
           redirectTo: `/private/incidents/${id}`,
+        },
+      ),
+  },
+
+  evidence: {
+    list: (params?: { q?: string; type?: string }) =>
+      request<EvidencePage>(
+        `/api/evidence${query({ q: params?.q, type: params?.type })}`,
+        { method: "GET" },
+        {
+          ...mockEvidence,
+          items: mockEvidence.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const type = params?.type;
+            const matchesQuery =
+              !q ||
+              [item.title, item.source, item.component, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesType = !type || item.type === type;
+            return matchesQuery && matchesType;
+          }),
+        },
+      ),
+  },
+
+  remediation: {
+    list: (params?: { q?: string; status?: string }) =>
+      request<RemediationPage>(
+        `/api/remediation${query({ q: params?.q, status: params?.status })}`,
+        { method: "GET" },
+        {
+          ...mockRemediation,
+          items: mockRemediation.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const status = params?.status;
+            const matchesQuery =
+              !q ||
+              [item.title, item.description, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesStatus = !status || item.status === status;
+            return matchesQuery && matchesStatus;
+          }),
         },
       ),
   },
