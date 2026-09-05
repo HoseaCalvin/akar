@@ -17,7 +17,7 @@ dotenv.config({
 const app = express();
 
 app.use(cors({
-    origin: ["http://localhost:3000", "http://172.30.16.1:3000"],
+    origin: ["http://localhost:3000"],
     credentials: true,              
 }));
 app.use(morgan("dev"));
