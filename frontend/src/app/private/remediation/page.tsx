@@ -515,7 +515,6 @@ function RemediationCard({
   number,
   item,
   recommended = false,
-  onApply,
 }: {
   number: string;
   item: RemediationItem;
