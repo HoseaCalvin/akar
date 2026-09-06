@@ -18,6 +18,6 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true
   },
-  trustedOrigins: [process.env.CLIENT_ORIGIN!, "http://172.30.16.1:3000"],
+  trustedOrigins: (process.env.CLIENT_ORIGIN ?? "").split(",").map((origin) => origin.trim()).filter(Boolean),
   plugins: [admin()],
 });
