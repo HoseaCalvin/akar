@@ -12,6 +12,8 @@ export type HighlightStat = {
   tone: HighlightTone;
 };
 
+
+
 export type DirectoryCounts = {
   inventory: number;
   pods: number;
@@ -202,6 +204,7 @@ export type TopologyEdge = {
   critical: boolean;
   path: string;
 };
+export type EvidenceKind = "Log" | "Metric" | "Trace" | "Change";
 
 export type LiveTopologyEntity = {
   id: string;
@@ -226,18 +229,91 @@ export type LiveTopology = {
   partial: boolean;
   warnings?: string[];
 };
-
 export type EvidenceItem = {
   id: string;
   time: string;
   ago: string;
   title: string;
-  type: string;
+  type: EvidenceKind | string;
   relevance: string;
   source: string;
   component: string;
   sparkline?: number[];
   sparklineColor?: "red" | "orange";
+};
+
+export type EvidenceLogLine = {
+  time: string;
+  level: "ERROR" | "WARN" | "INFO";
+  service?: string;
+  message: string;
+};
+
+export type EvidencePattern = {
+  pattern: string;
+  description: string;
+  occurrences: number;
+  severity: Severity;
+};
+
+export type RelatedEvidenceRef = {
+  id: string;
+  title: string;
+  type: string;
+  relevance: string;
+};
+
+export type EvidenceListItem = EvidenceItem & {
+  incidentId: string;
+  incidentCode: string;
+  description?: string;
+  descriptionAccent?: string;
+  windowLabel?: string;
+  aiSummary?: string;
+  metricSeries?: { time: string; value: number }[];
+  logSamples?: EvidenceLogLine[];
+  patterns?: EvidencePattern[];
+  rawData?: string;
+  affectedServices?: { name: string; impact: string }[];
+  related?: RelatedEvidenceRef[];
+};
+
+export type EvidencePage = {
+  highlights: HighlightStat[];
+  incident?: {
+    id: string;
+    code: string;
+    title: string;
+    severity: Severity;
+    detectedAgo: string;
+    activeFor: string;
+  };
+  items: EvidenceListItem[];
+};
+
+export type RemediationStatus =
+  | "Recommended"
+  | "In Progress"
+  | "Applied"
+  | "Failed";
+
+export type RemediationItem = {
+  id: string;
+  incidentId: string;
+  incidentCode: string;
+  title: string;
+  description: string;
+  expectedImpact: string;
+  confidence: string;
+  riskLevel: string;
+  status: RemediationStatus;
+  manualOnly: boolean;
+  updatedAgo: string;
+};
+
+export type RemediationPage = {
+  highlights: HighlightStat[];
+  items: RemediationItem[];
 };
 
 export type Investigation = {

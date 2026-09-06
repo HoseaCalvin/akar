@@ -3,12 +3,14 @@ import {
   MOCK_INCIDENT_ID,
   MOCK_RESOURCE_ID,
   mockDashboard,
+  mockEvidence,
   mockIncidentQueue,
   mockIncidentTimeline,
   mockInvestigation,
   mockInventory,
   mockNodes,
   mockPods,
+  mockRemediation,
   mockResourceDetail,
   mockServices,
   mockTimelineEventDetail,
@@ -17,6 +19,7 @@ import type {
   ApplyActionResult,
   DashboardSummary,
   DirectoryPage,
+  EvidencePage,
   IncidentDetail,
   IncidentQueue,
   IncidentTimeline,
@@ -25,6 +28,7 @@ import type {
   LiveTopology,
   NodeItem,
   PodItem,
+  RemediationPage,
   ResourceDetail,
   ResourceKind,
   ServiceItem,
@@ -41,6 +45,8 @@ import type {
  * GET  /api/incidents/:id/timeline/:eventId
  * GET  /api/incidents/:id/investigation
  * POST /api/incidents/:id/actions/:actionId/apply
+ * GET  /api/evidence?q=&type=
+ * GET  /api/remediation?q=&status=
  * GET  /api/monitor/inventory?q=
  * GET  /api/monitor/pods?q=
  * GET  /api/monitor/nodes?q=
@@ -63,6 +69,8 @@ const BACKEND_URL =
   "http://localhost:5001";
 
 const MOCK_MODE = process.env.NEXT_PUBLIC_USE_MOCK;
+
+
 
 export class ApiError extends Error {
   status: number;
@@ -109,7 +117,11 @@ async function request<T>(
     if (!response.ok) {
       const text = await response.text();
       let body: unknown = text;
-      try { body = JSON.parse(text); } catch { /* non-JSON error body */ }
+      try {
+        body = JSON.parse(text);
+      } catch {
+        /* non-JSON error body */
+      }
 
       if (fallback !== undefined && MOCK_MODE !== "false") {
         return delay(fallback);
@@ -212,6 +224,52 @@ export const api = {
           ok: true,
           message: "Action recorded (mock)",
           redirectTo: `/private/incidents/${id}`,
+        },
+      ),
+  },
+
+  evidence: {
+    list: (params?: { q?: string; type?: string }) =>
+      request<EvidencePage>(
+        `/api/evidence${query({ q: params?.q, type: params?.type })}`,
+        { method: "GET" },
+        {
+          ...mockEvidence,
+          items: mockEvidence.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const type = params?.type;
+            const matchesQuery =
+              !q ||
+              [item.title, item.source, item.component, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesType = !type || item.type === type;
+            return matchesQuery && matchesType;
+          }),
+        },
+      ),
+  },
+
+  remediation: {
+    list: (params?: { q?: string; status?: string }) =>
+      request<RemediationPage>(
+        `/api/remediation${query({ q: params?.q, status: params?.status })}`,
+        { method: "GET" },
+        {
+          ...mockRemediation,
+          items: mockRemediation.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const status = params?.status;
+            const matchesQuery =
+              !q ||
+              [item.title, item.description, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesStatus = !status || item.status === status;
+            return matchesQuery && matchesStatus;
+          }),
         },
       ),
   },

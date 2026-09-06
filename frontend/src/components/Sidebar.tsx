@@ -2,7 +2,7 @@
 
 import AkarLogo from "../../public/akar.png";
 
-import { Box, ChartNoAxesCombined, ChevronDown, FileClock, FlaskConical, Home, Syringe, TriangleAlert } from "lucide-react";
+import { Box, ChartNoAxesCombined, ChevronDown, FileClock, Home, Syringe, TriangleAlert } from "lucide-react";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -73,8 +73,8 @@ export default function Sidebar() {
                     className={`logo-container animate`}
                 >
                     <Syringe
-                        className={`${path === REMEDIATION_URL ? 'bg-black' : 'bg-white'} logo-dimension`}
-                        stroke={`${path === REMEDIATION_URL ? 'white' : 'black'}`}                
+                    className={`${path === REMEDIATION_URL || path.startsWith(REMEDIATION_URL) ? 'bg-black' : 'bg-white'} logo-dimension`}
+                    stroke={`${path === REMEDIATION_URL || path.startsWith(REMEDIATION_URL) ? 'white' : 'black'}`}
                     />
                     <h1 className="text-sm font-bold">Remediation</h1>
                 </Link>
