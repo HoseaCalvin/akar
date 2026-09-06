@@ -22,6 +22,7 @@ import type {
   IncidentTimeline,
   InventoryItem,
   Investigation,
+  LiveTopology,
   NodeItem,
   PodItem,
   ResourceDetail,
@@ -44,6 +45,7 @@ import type {
  * GET  /api/monitor/pods?q=
  * GET  /api/monitor/nodes?q=
  * GET  /api/monitor/services?q=
+ * GET  /api/monitor/topology
  * GET  /api/monitor/resources/:id
  *
  * Responses should match the TypeScript types in ./types.ts.
@@ -105,12 +107,9 @@ async function request<T>(
     });
 
     if (!response.ok) {
-      let body: unknown = null;
-      try {
-        body = await response.json();
-      } catch {
-        body = await response.text();
-      }
+      const text = await response.text();
+      let body: unknown = text;
+      try { body = JSON.parse(text); } catch { /* non-JSON error body */ }
 
       if (fallback !== undefined && MOCK_MODE !== "false") {
         return delay(fallback);
@@ -245,6 +244,12 @@ export const api = {
         { method: "GET" },
         mockServices,
       ),
+
+    deployments: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/deployments${query({ q: search })}`, { method: "GET" }, undefined),
+
+    namespaces: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/namespaces${query({ q: search })}`, { method: "GET" }, undefined),
+
+    topology: () => request<LiveTopology>("/api/monitor/topology", { method: "GET" }, undefined),
 
     resource: (id: string) =>
       request<ResourceDetail>(

@@ -53,7 +53,7 @@ export default function Pods() {
               <h1>NODE HOST</h1>
               <h1>NAMESPACE</h1>
               <h1>RESTARTS</h1>
-              <h1>CPU / RAM</h1>
+              <h1>REQUESTED CPU / RAM</h1>
               <h1>STATUS</h1>
               <h1>ACTION</h1>
             </div>

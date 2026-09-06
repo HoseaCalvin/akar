@@ -8,6 +8,7 @@ import path from "path";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./configs/auth";
 import authRouter from "./routes/auth.routes";
+import akarRouter from "./routes/akar.routes";
 
 dotenv.config({ 
     path: path.resolve(__dirname, "../.env") 
@@ -16,7 +17,7 @@ dotenv.config({
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000"],
     credentials: true,              
 }));
 app.use(morgan("dev"));
@@ -26,6 +27,7 @@ app.use(helmet());
 app.use("/api/auth", authRouter);
 
 app.use(express.json());
+app.use("/api", akarRouter);
 
 const PORT = process.env.PORT || 5001;
 
