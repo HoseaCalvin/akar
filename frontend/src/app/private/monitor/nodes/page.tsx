@@ -52,7 +52,7 @@ export default function Nodes() {
               <h1>ROLE</h1>
               <h1>K8S VERSION / OS</h1>
               <h1>ACTIVE PODS</h1>
-              <h1>CPU / RAM</h1>
+              <h1>ALLOCATABLE CPU / RAM</h1>
               <h1>CONDITION</h1>
               <h1>ACTION</h1>
             </div>

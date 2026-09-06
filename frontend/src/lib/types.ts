@@ -12,11 +12,15 @@ export type HighlightStat = {
   tone: HighlightTone;
 };
 
+
+
 export type DirectoryCounts = {
   inventory: number;
   pods: number;
   services: number;
   nodes: number;
+  deployments: number;
+  namespaces: number;
 };
 
 export type TimeSeriesPoint = {
@@ -30,12 +34,14 @@ export type DashboardSummary = {
   counts: {
     nodes: number;
     pods: number;
-    containers: number;
+    deployments: number;
     services: number;
+    namespaces: number;
   };
   health: {
     critical: number;
     high: number;
+    medium: number;
     low: number;
     healthyPercent: number;
     label: string;
@@ -198,9 +204,31 @@ export type TopologyEdge = {
   critical: boolean;
   path: string;
 };
-
 export type EvidenceKind = "Log" | "Metric" | "Trace" | "Change";
 
+export type LiveTopologyEntity = {
+  id: string;
+  name: string;
+  kind: string;
+  namespace?: string;
+  status: string;
+  attributes?: Record<string, string>;
+};
+
+export type LiveTopologyEdge = {
+  source: string;
+  target: string;
+  relationship_type: string;
+};
+
+export type LiveTopology = {
+  cluster: LiveTopologyEntity;
+  entities: LiveTopologyEntity[];
+  edges: LiveTopologyEdge[];
+  observed_at: string;
+  partial: boolean;
+  warnings?: string[];
+};
 export type EvidenceItem = {
   id: string;
   time: string;

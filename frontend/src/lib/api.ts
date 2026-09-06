@@ -25,6 +25,7 @@ import type {
   IncidentTimeline,
   InventoryItem,
   Investigation,
+  LiveTopology,
   NodeItem,
   PodItem,
   RemediationPage,
@@ -50,6 +51,7 @@ import type {
  * GET  /api/monitor/pods?q=
  * GET  /api/monitor/nodes?q=
  * GET  /api/monitor/services?q=
+ * GET  /api/monitor/topology
  * GET  /api/monitor/resources/:id
  *
  * Responses should match the TypeScript types in ./types.ts.
@@ -67,6 +69,8 @@ const BACKEND_URL =
   "http://localhost:5001";
 
 const MOCK_MODE = process.env.NEXT_PUBLIC_USE_MOCK;
+
+
 
 export class ApiError extends Error {
   status: number;
@@ -111,12 +115,12 @@ async function request<T>(
     });
 
     if (!response.ok) {
-      const raw = await response.text();
-      let body: unknown = raw;
+      const text = await response.text();
+      let body: unknown = text;
       try {
-        body = raw ? JSON.parse(raw) : null;
+        body = JSON.parse(text);
       } catch {
-        body = raw;
+        /* non-JSON error body */
       }
 
       if (fallback !== undefined && MOCK_MODE !== "false") {
@@ -298,6 +302,12 @@ export const api = {
         { method: "GET" },
         mockServices,
       ),
+
+    deployments: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/deployments${query({ q: search })}`, { method: "GET" }, undefined),
+
+    namespaces: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/namespaces${query({ q: search })}`, { method: "GET" }, undefined),
+
+    topology: () => request<LiveTopology>("/api/monitor/topology", { method: "GET" }, undefined),
 
     resource: (id: string) =>
       request<ResourceDetail>(

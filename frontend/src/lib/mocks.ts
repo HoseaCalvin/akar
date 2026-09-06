@@ -20,11 +20,12 @@ export const MOCK_RESOURCE_ID = "postgresql-primary";
 
 export const mockDashboard: DashboardSummary = {
   greetingName: "Zick",
-  counts: { nodes: 12, pods: 84, containers: 96, services: 18 },
+  counts: { nodes: 12, pods: 84, deployments: 24, services: 18, namespaces: 3 },
   health: {
     critical: 20,
     high: 30,
-    low: 50,
+    medium: 10,
+    low: 40,
     healthyPercent: 64.24,
     label: "Healthy",
   },
@@ -339,7 +340,7 @@ export const mockInvestigation: Investigation = {
   },
 };
 
-const directoryCounts = { inventory: 114, pods: 84, services: 18, nodes: 12 };
+const directoryCounts = { inventory: 114, pods: 84, services: 18, nodes: 12, deployments: 24, namespaces: 3 };
 
 export const mockInventory: DirectoryPage<InventoryItem> = {
   counts: directoryCounts,
