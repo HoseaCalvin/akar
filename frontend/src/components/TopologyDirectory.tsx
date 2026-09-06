@@ -13,7 +13,7 @@ export default function TopologyDirectory({ title, loader }: { title: string; lo
   const router = useRouter(); const [search, setSearch] = useState("");
   const { data, loading, error } = useApi(`${title}:${search}`, () => loader(search || undefined));
   return <>
-    <section className="flex items-center lg:gap-x-2 lg:pb-10"><ChevronLeft className="inline h-4 w-auto cursor-pointer lg:h-7" onClick={() => router.push("/private/monitor/inventory")} /><h1 className="font-bold text-xl">{title} Directory</h1></section>
+    <section className="flex items-center lg:gap-x-2 lg:pb-10"><button type="button" aria-label="Back to topology" onClick={() => router.push("/private/monitor/inventory")} className="inline-flex items-center"><ChevronLeft className="h-4 w-auto lg:h-7" /></button><h1 className="text-xl font-bold">{title} Directory</h1></section>
     <section className="flex justify-start w-full lg:gap-x-5">{data?.highlights.map((item) => <HighlightBox key={item.title} {...item} />)}</section>
     <TableDetail counts={data?.counts} search={search} onSearchChange={setSearch}>
       <section className="mt-5 max-h-screen w-full space-y-2.5 overflow-y-auto">
