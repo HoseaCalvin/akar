@@ -14,6 +14,7 @@ import incidentTimelineRouter from "./routes/incident-timeline.routes";
 import incidentHeaderRouter from "./routes/incident-header.routes";
 import clusterRouter from "./routes/cluster.routes";
 import metricsRouter from "./routes/metrics.routes";
+import akarRouter from "./routes/akar.routes";
 
 dotenv.config({ 
     path: path.resolve(__dirname, "../.env") 
@@ -22,7 +23,7 @@ dotenv.config({
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000"],
     credentials: true,              
 }));
 app.use(morgan("dev"));
@@ -37,6 +38,7 @@ app.use("/api/incident/timeline", incidentTimelineRouter);
 app.use("/api/incident/header", incidentHeaderRouter);
 
 app.use(express.json());
+app.use("/api", akarRouter);
 
 const PORT = process.env.PORT || 5001;
 

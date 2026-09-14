@@ -1,6 +1,6 @@
 "use client";
 
-import CluserDisc from "@/assets/cluster-cube.svg";
+import ClusterDisc from "@/assets/cluster-cube.svg";
 
 import { useState, useEffect } from "react";
 
@@ -241,7 +241,7 @@ export default function Dashboard() {
                   <figure>
                     <h1 className="w-full text-center font-semibold p-1 lg:text-xl">Cluster {index + 1}</h1>
                     <Image
-                      src={CluserDisc}
+                      src={ClusterDisc}
                       className="h-[5rem] w-auto lg:h-[13rem] xl:h-[16rem]"
                       alt="Cluster"
                       width={80}

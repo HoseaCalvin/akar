@@ -3,12 +3,14 @@ import {
   MOCK_INCIDENT_ID,
   MOCK_RESOURCE_ID,
   mockDashboard,
+  mockEvidence,
   mockIncidentQueue,
   mockIncidentTimeline,
   mockInvestigation,
   mockInventory,
   mockNodes,
   mockPods,
+  mockRemediation,
   mockResourceDetail,
   mockServices,
   mockTimelineEventDetail,
@@ -17,13 +19,16 @@ import type {
   ApplyActionResult,
   DashboardSummary,
   DirectoryPage,
+  EvidencePage,
   IncidentDetail,
   IncidentQueue,
   IncidentTimeline,
   InventoryItem,
   Investigation,
+  LiveTopology,
   NodeItem,
   PodItem,
+  RemediationPage,
   ResourceDetail,
   ResourceKind,
   ServiceItem,
@@ -79,11 +84,12 @@ async function request<T>(
     });
 
     if (!response.ok) {
-      let body: unknown = null;
+      const text = await response.text();
+      let body: unknown = text;
       try {
-        body = await response.json();
+        body = JSON.parse(text);
       } catch {
-        body = await response.text();
+        /* non-JSON error body */
       }
 
       if (fallback !== undefined && MOCK_MODE !== "false") {
@@ -191,6 +197,52 @@ export const api = {
       ),
   },
 
+  evidence: {
+    list: (params?: { q?: string; type?: string }) =>
+      request<EvidencePage>(
+        `/api/evidence${query({ q: params?.q, type: params?.type })}`,
+        { method: "GET" },
+        {
+          ...mockEvidence,
+          items: mockEvidence.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const type = params?.type;
+            const matchesQuery =
+              !q ||
+              [item.title, item.source, item.component, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesType = !type || item.type === type;
+            return matchesQuery && matchesType;
+          }),
+        },
+      ),
+  },
+
+  remediation: {
+    list: (params?: { q?: string; status?: string }) =>
+      request<RemediationPage>(
+        `/api/remediation${query({ q: params?.q, status: params?.status })}`,
+        { method: "GET" },
+        {
+          ...mockRemediation,
+          items: mockRemediation.items.filter((item) => {
+            const q = params?.q?.toLowerCase();
+            const status = params?.status;
+            const matchesQuery =
+              !q ||
+              [item.title, item.description, item.incidentCode]
+                .join(" ")
+                .toLowerCase()
+                .includes(q);
+            const matchesStatus = !status || item.status === status;
+            return matchesQuery && matchesStatus;
+          }),
+        },
+      ),
+  },
+
   monitor: {
     inventory: (search?: string) =>
       request<DirectoryPage<InventoryItem>>(
@@ -219,6 +271,12 @@ export const api = {
         { method: "GET" },
         mockServices,
       ),
+
+    deployments: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/deployments${query({ q: search })}`, { method: "GET" }, undefined),
+
+    namespaces: (search?: string) => request<DirectoryPage<InventoryItem>>(`/api/monitor/namespaces${query({ q: search })}`, { method: "GET" }, undefined),
+
+    topology: () => request<LiveTopology>("/api/monitor/topology", { method: "GET" }, undefined),
 
     resource: (id: string) =>
       request<ResourceDetail>(

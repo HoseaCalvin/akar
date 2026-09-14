@@ -3,9 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PageState from "@/components/PageState";
-import Sparkline from "@/components/Sparkline";
+
 import {
   ChevronLeft,
   CalendarDays,
@@ -15,24 +13,31 @@ import {
   Info,
   Activity,
 } from "lucide-react";
+
+import PageState from "@/components/PageState";
+import ActBtn from "@/components/ActBtn";
+
 import { api } from "@/lib/api";
 import { useApi } from "@/lib/use-api";
 
 export default function IncidentTimelineDetails({
   params,
 }: {
-  params: Promise<{ id: string; eventId: string }>;
+  params: Promise<{
+    id: string;
+    eventId: string;
+  }>;
 }) {
   const { id, eventId } = use(params);
   const router = useRouter();
+
   const { data, loading, error } = useApi(`event:${id}:${eventId}`, () =>
     api.incidents.timelineEvent(id, eventId),
   );
 
   if (!data) {
     return (
-      <main className="main-container min-h-screen px-5 pb-7 pt-4">
-        <TopBar />
+      <main className="main-container min-h-screen px-4 pb-6 pt-4 sm:px-5 md:px-7">
         <PageState loading={loading} error={error} />
       </main>
     );
@@ -41,84 +46,128 @@ export default function IncidentTimelineDetails({
   const { incident, event } = data;
 
   return (
-    <main className="main-container min-h-screen px-5 pb-7 pt-4 text-[#17294D] md:px-7 md:pt-5">
-      <section className="flex min-h-[72px] items-center justify-between gap-6">
-        <div className="flex min-w-0 items-center gap-4">
+    <main className="main-container min-h-screen px-4 pb-5 pt-4 text-[#17294D] sm:px-5 md:px-7 lg:px-8">
+      <header className="mb-5 flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
             onClick={() => router.push(`/private/incidents/${id}/timeline`)}
             aria-label="Go back"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition hover:bg-white"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:bg-white"
           >
-            <ChevronLeft className="h-8 w-8 text-black" />
+            <ChevronLeft className="h-6 w-6 text-[#17294D]" strokeWidth={2} />
           </button>
-          <div className="flex min-w-0 items-center gap-5">
-            <h1 className="shrink-0 text-2xl font-bold text-black md:text-3xl">
+
+          <div className="flex min-w-0 items-center gap-3">
+            <h1 className="shrink-0 text-[21px] font-bold leading-none tracking-[-0.025em] text-black sm:text-[22px] md:text-[24px]">
               {incident.code}
             </h1>
-            <h2 className="truncate text-2xl font-semibold text-black md:text-3xl">
+
+            <h2 className="min-w-0 truncate text-[19px] font-medium leading-none tracking-[-0.02em] text-black sm:text-[20px] md:text-[22px]">
               {incident.title}
             </h2>
           </div>
         </div>
-        <div className="shrink-0">
-          <TopBar />
-        </div>
-      </section>
 
-      <section className="mb-5 flex flex-wrap items-center gap-x-10 gap-y-3 px-1 text-[15px] text-[#202638]">
+        <ActBtn />
+      </header>
+
+      <section className="mb-5 flex flex-wrap items-center gap-x-7 gap-y-2 px-1 text-[12px] text-[#202638] sm:text-[13px]">
         <div className="flex items-center gap-2">
-          <CalendarDays className="h-[18px] w-[18px]" />
+          <CalendarDays className="h-[15px] w-[15px]" />
+
           <span>{data.windowLabel}</span>
         </div>
+
         <div className="flex items-center gap-2">
-          <CircleDot className="h-[18px] w-[18px]" />
+          <CircleDot className="h-[15px] w-[15px]" />
+
           <span>
-            Affected Service: <strong className="font-bold">{incident.affectedService}</strong>
+            Affected Service:{" "}
+            <strong className="font-bold">{incident.affectedService}</strong>
           </span>
         </div>
+
         <div className="flex items-center gap-2">
-          <Activity className="h-[18px] w-[18px]" />
+          <Activity className="h-[15px] w-[15px]" />
+
           <span>
-            Environment: <strong className="font-bold">{incident.environment}</strong>
+            Environment:{" "}
+            <strong className="font-bold">{incident.environment}</strong>
           </span>
         </div>
       </section>
 
-      <section className="mb-4 rounded-[22px] border border-white bg-white/70 px-7 py-5 shadow-[0_5px_25px_rgba(56,76,130,0.05)]">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.9fr_0.7fr_auto] lg:items-center">
-          <div className="border-b pb-4 lg:border-b-0 lg:border-r lg:pb-0">
-            <h3 className="text-[18px] font-bold">{event.title}</h3>
-            <p className="mt-2 text-[15px]">{data.leadTimeLabel}</p>
+      <section className="mb-4 rounded-[20px] border border-white/90 bg-white/70 px-5 py-4 shadow-[0_5px_25px_rgba(56,76,130,0.05)] sm:px-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_.65fr_.75fr_1fr_.7fr_auto] lg:items-center lg:gap-0">
+          <div className="border-b pb-3 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-5">
+            <h3 className="text-[15px] font-bold leading-5">{event.title}</h3>
+
+            <p className="mt-1.5 text-[12px] leading-5">{data.leadTimeLabel}</p>
           </div>
-          <MetaItem label="Change by" value={data.changeBy ?? "—"} />
-          <MetaItem label="Type" value={data.type ?? event.title} />
-          <MetaItem label="Resource" value={data.resource ?? "—"} />
-          <MetaItem label="Change ID" value={data.changeId ?? "—"} />
+
+          <div className="lg:px-4">
+            <MetaItem label="Change by" value={data.changeBy ?? "—"} />
+          </div>
+
+          <div className="lg:px-4">
+            <MetaItem label="Type" value={data.type ?? event.title} />
+          </div>
+
+          <div className="lg:px-4">
+            <MetaItem label="Resource" value={data.resource ?? "—"} />
+          </div>
+
+          <div className="lg:px-4">
+            <MetaItem label="Change ID" value={data.changeId ?? "—"} />
+          </div>
+
           <Link
             href={`/private/incidents/${id}/investigation`}
-            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-[#9dbaff] bg-[#eaf1ff] px-4 text-[14px] font-medium text-[#17294D] transition hover:bg-[#dce8ff]"
+            className="flex h-9 items-center justify-center gap-2 rounded-lg border border-[#9DBAFF] bg-[#EAF1FF] px-3.5 text-[11px] font-medium whitespace-nowrap text-[#17294D] transition hover:bg-[#DCE8FF]"
           >
             View Investigation
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
-        <p className="mt-5 text-[15px]">{data.summary}</p>
+
+        <p className="mt-4 text-[12px] leading-5 sm:text-[13px]">
+          {data.summary}
+        </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="space-y-4">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr] lg:items-stretch">
+        <div className="flex min-h-0 flex-col">
           {data.configDiff && (
-            <section className="rounded-[22px] border border-white bg-white/65 p-7 shadow-[0_5px_25px_rgba(56,76,130,0.05)]">
-              <h3 className="mb-3 text-[18px] font-bold">What Changed</h3>
-              <div className="overflow-hidden rounded-xl border border-[#9bc2ff] bg-white">
-                <div className="flex items-center justify-between bg-[#e5f2ff] px-4 py-2.5">
-                  <span className="text-[14px]">{data.configDiff.file}</span>
+            <section className="rounded-[20px] border border-white/90 bg-white/65 p-5 shadow-[0_5px_25px_rgba(56,76,130,0.05)] sm:p-6">
+              <div className="mb-3">
+                <h3 className="text-[16px] font-bold leading-5">
+                  What Changed
+                </h3>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-[#8EBBFF] bg-white">
+                <div className="flex min-h-[40px] items-center justify-between bg-[#E2F1FF] px-3.5 py-2">
+                  <span className="truncate text-[12px] text-[#17294D]">
+                    {data.configDiff.file}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="ml-3 flex h-8 shrink-0 items-center gap-2 rounded-lg border border-[#9DBAFF] bg-[#EDF4FF] px-3 text-[11px] font-medium text-[#17294D] transition hover:bg-[#DFEAFF]"
+                  >
+                    View Full
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <div className="px-4 py-4 font-mono text-[14px] leading-[2]">
+
+                <div className="overflow-x-auto px-3.5 py-3 font-mono text-[11px] leading-[1.9] sm:px-4 sm:text-[12px]">
                   {data.configDiff.lines.map((line) => (
-                    <div key={line.number} className="flex">
-                      <span className="mr-5 w-4 select-none text-gray-600">{line.number}</span>
+                    <div key={line.number} className="flex min-w-max">
+                      <span className="mr-5 w-5 select-none text-gray-500">
+                        {line.number}
+                      </span>
+
                       <span
                         className={
                           line.kind === "removed"
@@ -127,7 +176,7 @@ export default function IncidentTimelineDetails({
                               ? "text-green-500"
                               : line.kind === "key"
                                 ? "text-blue-600"
-                                : "text-[#26344d]"
+                                : "text-[#26344D]"
                         }
                       >
                         {line.text}
@@ -139,109 +188,350 @@ export default function IncidentTimelineDetails({
             </section>
           )}
 
-          <section className="rounded-[22px] border border-white bg-white/65 p-4 shadow-[0_5px_25px_rgba(56,76,130,0.05)]">
-            <h3 className="mb-2 px-3 text-[18px] font-bold">Related Signals</h3>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              {data.signals.map((signal) => (
-                <div key={signal.title} className="rounded-xl bg-white px-3 py-2">
-                  <p className="text-[13px]">{signal.title}</p>
-                  <p className="mt-1 text-[28px] font-bold leading-none text-black">
-                    {signal.value}
-                  </p>
-                  {signal.suffix && (
-                    <p className="text-[10px] text-gray-500">{signal.suffix}</p>
-                  )}
-                  <div className="mt-2 h-[80px] overflow-hidden">
-                    <Sparkline
-                      values={signal.sparkline}
-                      color={signal.type === "database" ? "#527BFF" : "#FF5B5B"}
-                    />
-                  </div>
-                </div>
+          <section className="mt-4 flex min-h-0 flex-1 flex-col rounded-[20px] border border-white/90 bg-white/65 px-4 pb-5 pt-5 shadow-[0_5px_25px_rgba(56,76,130,0.05)] sm:px-5">
+            <h3 className="mb-4 px-2 text-[16px] font-bold leading-5 text-[#17294D]">
+              Related Signals
+            </h3>
+
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+              {data.signals.map((signal, index) => (
+                <SignalCard
+                  key={signal.title}
+                  title={signal.title}
+                  value={signal.value}
+                  suffix={signal.suffix}
+                  values={signal.sparkline}
+                  type={signal.type === "database" ? "database" : "error"}
+                  index={index}
+                />
               ))}
             </div>
           </section>
         </div>
 
-        <section className="rounded-[22px] border border-white bg-white/65 p-7 shadow-[0_5px_25px_rgba(56,76,130,0.05)]">
-          <h3 className="mb-3 text-[18px] font-bold">AI Impact Summary</h3>
-          <div className="rounded-[22px] border border-[#b9b7ff] bg-[#e8f3ff] px-5 py-5">
-            <div className="flex gap-4">
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#173d8f] text-white">
-                <Atom className="h-6 w-6" />
+        <section className="flex min-h-0 flex-col rounded-[20px] border border-white/90 bg-white/65 p-5 shadow-[0_5px_25px_rgba(56,76,130,0.05)] sm:p-6">
+          <h3 className="mb-3 text-[16px] font-bold leading-5">
+            AI Impact Summary
+          </h3>
+
+          <div className="rounded-[18px] border border-[#B9B7FF] bg-[#E5F2FF] px-4 py-4">
+            <div className="flex gap-3.5">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#173D8F] text-white">
+                <Atom className="h-5 w-5" strokeWidth={1.8} />
               </div>
-              <div>
-                <h4 className="text-[18px] font-bold text-[#0b3184]">
+
+              <div className="min-w-0">
+                <h4 className="text-[15px] font-bold leading-5 text-[#0B3184]">
                   {data.aiImpact.headline}
                 </h4>
-                <p className="mt-2 text-[16px] leading-6 text-[#0b3184]">
+
+                <p className="mt-2 text-[13px] leading-5 text-[#0B3184]">
                   {data.aiImpact.body}
                 </p>
               </div>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 rounded-[20px] bg-[#eef5fc] px-4 py-5">
+
+          <div className="mt-4 grid grid-cols-1 gap-3 rounded-[18px] bg-[#EEF5FC] px-4 py-4 sm:grid-cols-3">
             <RiskItem label="Risk Level" value={data.aiImpact.riskLevel} />
-            <RiskItem label="Potential Impact" value={data.aiImpact.potentialImpact} />
-            <RiskItem label="Likelihood of Impact" value={data.aiImpact.likelihood} />
+
+            <RiskItem
+              label="Potential Impact"
+              value={data.aiImpact.potentialImpact}
+            />
+
+            <RiskItem
+              label="Likelihood of Impact"
+              value={data.aiImpact.likelihood}
+            />
           </div>
+
           <div className="mt-5">
-            <h4 className="text-[15px] font-semibold">Why this matters</h4>
-            <p className="mt-2 max-w-[570px] text-[14px] leading-5 text-[#1d2029]">
+            <h4 className="text-[13px] font-semibold">Why this matters</h4>
+
+            <p className="mt-1.5 text-[12px] leading-5 text-[#1D2029]">
               {data.aiImpact.whyItMatters}
             </p>
           </div>
-          <div className="mt-7">
+
+          <div className="mt-6 flex-1">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-[18px] font-bold">Related Events</h3>
-              <Link href={`/private/incidents/${id}/timeline`} className="text-[13px] text-[#1670ff]">
+              <h3 className="text-[16px] font-bold leading-5">
+                Related Events
+              </h3>
+
+              <Link
+                href={`/private/incidents/${id}/timeline`}
+                className="text-[11px] font-medium text-[#1670FF] hover:underline"
+              >
                 Full timeline →
               </Link>
             </div>
-            {data.relatedEvents.map((related) => (
-              <div key={related.id} className="mb-2 flex items-center justify-between gap-4 rounded-[15px] bg-[#eef5fc] px-4 py-3">
-                <div>
-                  <h4 className={`text-[12px] font-bold ${related.color === "red" ? "text-red-500" : "text-orange-500"}`}>
-                    {related.time} · {related.title}
-                  </h4>
-                  <p className="mt-1 whitespace-pre-line text-[11px] leading-4 text-[#343942]">
-                    {related.description}
-                  </p>
+
+            <div className="relative">
+              <div className="absolute bottom-[20px] left-[16px] top-[20px] w-[3px] bg-[#F07824]" />
+
+              {data.relatedEvents.map((related) => (
+                <div
+                  key={related.id}
+                  className="relative mb-2.5 flex gap-3.5 last:mb-0"
+                >
+                  <div className="relative z-10 flex w-[35px] shrink-0 justify-center">
+                    <div
+                      className={`mt-2 h-[34px] w-[34px] rounded-full ${
+                        related.color === "red"
+                          ? "bg-[#F12626]"
+                          : "bg-[#F46D25]"
+                      }`}
+                    />
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[14px] bg-[#EEF5FC] px-3 py-2.5 sm:px-3.5">
+                    <div className="min-w-0 flex-1">
+                      <h4
+                        className={`text-[11px] font-bold ${
+                          related.color === "red"
+                            ? "text-[#F12626]"
+                            : "text-[#F46D25]"
+                        }`}
+                      >
+                        {related.time} · {related.title}
+                      </h4>
+
+                      <p className="mt-1 whitespace-pre-line text-[10px] leading-4 text-[#343942]">
+                        {related.description}
+                      </p>
+                    </div>
+
+                    <div className="hidden min-w-[100px] shrink-0 border-l border-[#D1D7DF] pl-3 sm:block">
+                      <p className="text-[10px] text-gray-600">
+                        {related.metricLabel ?? "Metric"}
+                      </p>
+
+                      <p className="mt-1.5 text-[10px] font-semibold text-[#17294D]">
+                        {related.metric}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-[120px] border-l border-gray-300 pl-4">
-                  <p className="text-[11px] text-gray-600">{related.metricLabel ?? "Metric"}</p>
-                  <p className="mt-2 text-[11px] font-semibold">{related.metric}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
       </section>
 
-      <section className="mt-4 flex flex-col gap-4 rounded-[18px] border border-[#9caeff] bg-[#e4f2ff] px-6 py-4 md:flex-row md:items-center">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] border-[#123e8e] text-[#123e8e]">
-          <Info className="h-6 w-6" />
+      <section className="mt-4 flex flex-col gap-3 rounded-[18px] border border-[#9CAEFF] bg-[#E4F2FF] px-4 py-3 sm:px-5 md:flex-row md:items-center">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-[#123E8E] text-[#123E8E]">
+          <Info className="h-5 w-5" strokeWidth={2} />
         </div>
-        <p className="flex-1 text-[16px] leading-6 text-[#103b89]">{data.correlationNote}</p>
+
+        <p className="flex-1 text-[12px] leading-5 text-[#103B89] sm:text-[13px]">
+          This change occurred 3m 34s before the first anomaly and is correlated
+          with the incidents AKAR identified it as a potential contributing
+          factor
+        </p>
+
+        <button
+          type="button"
+          className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#9DBAFF] bg-[#EDF4FF] px-3.5 text-[11px] font-medium whitespace-nowrap text-[#17294D] transition hover:bg-[#DCE8FF] active:scale-[0.98]"
+        >
+          Ask AI about this change
+          <ExternalLink className="h-3.5 w-3.5" />
+        </button>
       </section>
     </main>
+  );
+}
+
+function SignalCard({
+  title,
+  value,
+  suffix,
+  values,
+  type,
+  index,
+}: {
+  title: string;
+  value: string;
+  suffix?: string;
+  values: number[];
+  type: "database" | "error";
+  index: number;
+}) {
+  return (
+    <div className="flex min-h-[260px] h-full flex-col overflow-hidden rounded-[16px] bg-white px-4 pb-3 pt-4 sm:px-5">
+      <div className="h-[92px] shrink-0">
+        <p className="text-[15px] font-normal leading-5 text-[#17294D]">
+          {title}
+        </p>
+
+        <p className="mt-1.5 text-[34px] font-bold leading-none tracking-[-0.04em] text-black">
+          {value}
+        </p>
+
+        <p className="mt-1 text-[12px] leading-4 text-[#30343C]">
+          {suffix || "\u00A0"}
+        </p>
+      </div>
+
+      <div className="mt-1 min-h-0 flex-1">
+        <SignalChart values={values} type={type} index={index} />
+      </div>
+    </div>
+  );
+}
+
+function SignalChart({
+  values,
+  type,
+  index,
+}: {
+  values: number[];
+  type: "database" | "error";
+  index: number;
+}) {
+  const width = 500;
+  const height = 170;
+
+  const left = 34;
+  const right = 8;
+  const top = 8;
+  const bottom = 32;
+
+  const chartWidth = width - left - right;
+  const chartHeight = height - top - bottom;
+
+  const points = values.map((value, i) => {
+    const x = left + (i / Math.max(values.length - 1, 1)) * chartWidth;
+
+    const y = top + chartHeight - (Math.min(value, 75) / 75) * chartHeight;
+
+    return `${x},${y}`;
+  });
+
+  const linePoints = points.join(" ");
+
+  const areaPoints = [
+    `${left},${top + chartHeight}`,
+    ...points,
+    `${left + chartWidth},${top + chartHeight}`,
+  ].join(" ");
+
+  const stroke = type === "database" ? "#3975FF" : "#FF3F3F";
+
+  const gradientId = `signal-gradient-${type}-${index}`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="block h-full w-full"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.42" />
+
+          <stop offset="100%" stopColor={stroke} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+
+      <line
+        x1={left}
+        y1={top}
+        x2={left}
+        y2={top + chartHeight}
+        stroke="#8D8D8D"
+        strokeWidth="1"
+        strokeDasharray="2 2"
+      />
+
+      <line
+        x1={left}
+        y1={top + chartHeight}
+        x2={left + chartWidth}
+        y2={top + chartHeight}
+        stroke="#8D8D8D"
+        strokeWidth="1"
+        strokeDasharray="2 2"
+      />
+
+      <text x="5" y={top + 4} fontSize="11" fill="#414141">
+        75
+      </text>
+
+      <text x="5" y={top + chartHeight / 3 + 4} fontSize="11" fill="#414141">
+        50
+      </text>
+
+      <text
+        x="5"
+        y={top + (chartHeight * 2) / 3 + 4}
+        fontSize="11"
+        fill="#414141"
+      >
+        25
+      </text>
+
+      <text x="9" y={top + chartHeight + 4} fontSize="11" fill="#414141">
+        0
+      </text>
+
+      <polygon points={areaPoints} fill={`url(#${gradientId})`} />
+
+      <polyline
+        points={linePoints}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <text x={left} y={height - 6} fontSize="11" fill="#333333">
+        15:06
+      </text>
+
+      <text
+        x={left + chartWidth * 0.42}
+        y={height - 6}
+        fontSize="11"
+        fill="#333333"
+        textAnchor="middle"
+      >
+        15:15
+      </text>
+
+      <text
+        x={left + chartWidth * 0.72}
+        y={height - 6}
+        fontSize="11"
+        fill="#333333"
+        textAnchor="middle"
+      >
+        15:25
+      </text>
+    </svg>
   );
 }
 
 function MetaItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[13px] text-[#202638]">{label}</p>
-      <p className="mt-2 text-[14px] font-bold">{value}</p>
+      <p className="text-[10px] text-[#202638]">{label}</p>
+
+      <p className="mt-1.5 truncate text-[11px] font-bold">{value}</p>
     </div>
   );
 }
 
 function RiskItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="px-2">
-      <p className="text-[16px] text-gray-500">{label}</p>
-      <p className="mt-5 text-[17px] font-medium text-[#171b23]">{value}</p>
+    <div className="px-1">
+      <p className="text-[12px] text-gray-500">{label}</p>
+
+      <p className="mt-2 text-[14px] font-medium leading-5 text-[#171B23]">
+        {value}
+      </p>
     </div>
   );
 }

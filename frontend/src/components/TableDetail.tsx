@@ -24,12 +24,16 @@ export default function TableDetail({
   const PODS_URL = "/private/monitor/pods";
   const SERVICES_URL = "/private/monitor/services";
   const NODES_URL = "/private/monitor/nodes";
+  const DEPLOYMENTS_URL = "/private/monitor/deployments";
+  const NAMESPACES_URL = "/private/monitor/namespaces";
 
   const tabs = [
-    { href: INVENTORY_URL, label: `All (${counts?.inventory ?? 0})` },
+    { href: INVENTORY_URL, label: `Topology (${counts?.inventory ?? 0})` },
     { href: PODS_URL, label: `Pods (${counts?.pods ?? 0})` },
     { href: SERVICES_URL, label: `Services (${counts?.services ?? 0})` },
     { href: NODES_URL, label: `Nodes (${counts?.nodes ?? 0})` },
+    { href: DEPLOYMENTS_URL, label: `Deployments (${counts?.deployments ?? 0})` },
+    { href: NAMESPACES_URL, label: `Namespaces (${counts?.namespaces ?? 0})` },
   ];
 
   return (
@@ -46,15 +50,15 @@ export default function TableDetail({
             </Link>
           ))}
         </div>
-        <div>
+        {onSearchChange && <div>
           <input
             type="text"
             value={search ?? ""}
-            onChange={(event) => onSearchChange?.(event.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search resource name, IP, label..."
             className="rounded-md border border-slate-400 bg-slate-50 min-w-xs md:text-sm lg:py-1 lg:px-3"
           />
-        </div>
+        </div>}
       </header>
       {children}
     </div>
