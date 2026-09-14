@@ -7,7 +7,13 @@ import path from "path";
 
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./configs/auth";
+
 import authRouter from "./routes/auth.routes";
+import infrastructureRouter from "./routes/infrastructure.routes";
+import incidentTimelineRouter from "./routes/incident-timeline.routes";
+import incidentHeaderRouter from "./routes/incident-header.routes";
+import clusterRouter from "./routes/cluster.routes";
+import metricsRouter from "./routes/metrics.routes";
 
 dotenv.config({ 
     path: path.resolve(__dirname, "../.env") 
@@ -24,6 +30,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
 app.use("/api/auth", authRouter);
+app.use("/api/infrastructure", infrastructureRouter);
+app.use("/api/metrics", metricsRouter);
+app.use("/api/cluster", clusterRouter);
+app.use("/api/incident/timeline", incidentTimelineRouter);
+app.use("/api/incident/header", incidentHeaderRouter);
 
 app.use(express.json());
 

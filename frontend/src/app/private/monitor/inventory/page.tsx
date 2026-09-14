@@ -3,11 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import TopBar from "@/components/TopBar";
 import HighlightBox from "@/components/HighlightBox";
 import TableDetail from "@/components/TableDetail";
 import PageState from "@/components/PageState";
+
 import { ChevronLeft } from "lucide-react";
+
 import {
   getDescriptionColor,
   getRowBackgroundColor,
@@ -77,7 +80,7 @@ export default function Inventory() {
                 </div>
                 <div className="flex flex-col justify-center">
                   <div className={`flex items-center rounded-lg w-fit ${getBadgeColor(item.status)} lg:py-0.5 lg:px-3`}>
-                    <span className={`text-sm font-semibold ${getBadgeTextColor(item.status)}`}>{item.status}</span>
+                    <span className={`text-sm font-semibold ${getBadgeTextColor(item.status)}`}>Critical</span>
                   </div>
                 </div>
                 <div className="flex flex-col justify-center">

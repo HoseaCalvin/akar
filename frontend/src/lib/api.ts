@@ -30,32 +30,6 @@ import type {
   TimelineEventDetail,
 } from "./types";
 
-/**
- * Backend contract (Express, cookie session via better-auth):
- *
- * GET  /api/dashboard
- * GET  /api/incidents?worker=&kind=pods|services
- * GET  /api/incidents/:id
- * GET  /api/incidents/:id/timeline
- * GET  /api/incidents/:id/timeline/:eventId
- * GET  /api/incidents/:id/investigation
- * POST /api/incidents/:id/actions/:actionId/apply
- * GET  /api/monitor/inventory?q=
- * GET  /api/monitor/pods?q=
- * GET  /api/monitor/nodes?q=
- * GET  /api/monitor/services?q=
- * GET  /api/monitor/resources/:id
- *
- * Responses should match the TypeScript types in ./types.ts.
- * Auth cookie must be sent: credentials: "include".
- *
- * NEXT_PUBLIC_BACKEND_URL   default http://localhost:5001
- * NEXT_PUBLIC_USE_MOCK=true always use mocks (UI demo without API)
- * NEXT_PUBLIC_USE_MOCK=false never fall back; fail if API is down
- * unset                     try API, then mock (hackathon default)
- */
-
-
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") ??
   "http://localhost:5001";
