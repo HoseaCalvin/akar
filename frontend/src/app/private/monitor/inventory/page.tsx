@@ -7,18 +7,6 @@ import { useRouter } from "next/navigation";
 import TopBar from "@/components/TopBar";
 import TableDetail from "@/components/TableDetail";
 import PageState from "@/components/PageState";
-<<<<<<< HEAD
-
-import { ChevronLeft } from "lucide-react";
-
-import {
-  getDescriptionColor,
-  getRowBackgroundColor,
-  getBadgeColor,
-  getBadgeTextColor,
-} from "@/utils/row-style";
-=======
->>>>>>> origin/main
 import { api } from "@/lib/api";
 import { useApi } from "@/lib/use-api";
 import type { LiveTopologyEdge, LiveTopologyEntity } from "@/lib/types";
@@ -103,40 +91,6 @@ export default function Inventory() {
                 <span className="font-medium text-slate-800">{names.get(edge.source) || edge.source}</span> <span className="text-slate-400 mx-1">→</span> <span className="font-medium text-slate-800">{names.get(edge.target) || edge.target}</span> <span className="ml-2 text-xs text-slate-400 uppercase">{edge.relationship_type}</span>
               </div>)}
             </div>
-<<<<<<< HEAD
-            <PageState loading={loading} error={error} empty={!loading && (data?.items.length ?? 0) === 0} />
-            {data?.items.map((item) => (
-              <div
-                key={item.id}
-                className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] w-full justify-center rounded-lg border ${getRowBackgroundColor(item.status)} lg:p-4`}
-              >
-                <div className="flex flex-col justify-center md:space-y-1">
-                  <span className="text-sm font-bold">{item.name}</span>
-                  <span className={`text-xs ${getDescriptionColor(item.status)}`}>{item.description}</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <span className="text-sm text-gray-400">{item.type}</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <span className="text-sm text-gray-400">{item.namespace}</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <span className="text-sm font-semibold text-gray-400">{item.cpuRam}</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <div className={`flex items-center rounded-lg w-fit ${getBadgeColor(item.status)} lg:py-0.5 lg:px-3`}>
-                    <span className={`text-sm font-semibold ${getBadgeTextColor(item.status)}`}>Critical</span>
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <Link href={`/private/monitor/resources/${item.id}`} className="text-sm font-semibold text-blue-400">
-                    Inspect Detail →
-                  </Link>
-                </div>
-              </div>
-            ))}
-=======
->>>>>>> origin/main
           </section>
         </section>}
       </TableDetail>
