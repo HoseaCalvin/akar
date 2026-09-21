@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,47 +9,45 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-
-  role       String?
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  name            String
+  email           String           @unique
+  emailVerified   Boolean          @default(false)
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  banExpires      DateTime?
+  banReason       String?
+  banned          Boolean?         @default(false)
+  role            String?
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accounts        Account[]
+  incident_header IncidentHeader[]
+  infrastructure  Infrastructure[]
+  sessions        Session[]
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  impersonatedBy String?
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @db.Uuid
+  impersonatedBy String?  @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("session")
 }
 
 model Account {
-  id                    String    @id
   issuer                String?
   accountId             String
   providerId            String
-  userId                String
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -60,6 +57,8 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
@@ -68,13 +67,102 @@ model Account {
 }
 
 model Verification {
-  id         String   @id
   identifier String
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   @@index([identifier])
   @@map("verification")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Cluster {
+  id                String          @id @db.Uuid
+  severity_id       String          @db.Uuid
+  pod_count         Int
+  container_count   Int
+  service_count     Int
+  node_count        Int
+  infrastructure_id String?         @db.Uuid
+  infrastructure    Infrastructure? @relation(fields: [infrastructure_id], references: [id], onDelete: Cascade)
+  severity          Severity        @relation(fields: [severity_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cluster_severity_fk")
+
+  @@index([severity_id], map: "idx_cluster_severity_id")
+  @@map("cluster")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model IncidentHeader {
+  id                String             @id @db.Uuid
+  user_id           String             @db.Uuid
+  code              String             @unique @db.VarChar
+  title             String             @db.VarChar
+  namespace         String             @db.VarChar
+  severity_id       String             @db.Uuid
+  status            String             @db.VarChar
+  cause             String             @db.VarChar
+  cpu_usage         Decimal            @db.Decimal
+  memory_usage      Int
+  restart_count     Int
+  confidence        Int
+  start_time        DateTime           @db.Timestamp(6)
+  end_time          DateTime           @db.Timestamp(6)
+  affected_service  String             @db.VarChar
+  severity          Severity           @relation(fields: [severity_id], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "incident_header_user_fk")
+  incident_timeline IncidentTimeline[]
+
+  @@index([user_id], map: "idx_incident_header_user_id")
+  @@map("incident_header")
+}
+
+model IncidentTimeline {
+  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  header_id              String         @db.Uuid
+  time_log               DateTime       @db.Timestamp(6)
+  title                  String         @db.VarChar
+  description            String         @db.VarChar
+  additional_description String         @db.VarChar
+  incident_header        IncidentHeader @relation(fields: [header_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "incident_timeline_header_fk")
+
+  @@index([header_id], map: "idx_incident_timeline_header_id")
+  @@map("incident_timeline")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Infrastructure {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  health   Float     @db.Real
+  mttd     Int
+  mttr     Int
+  rca_time Int
+  user_id  String    @db.Uuid
+  cluster  Cluster[]
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  metrics  metrics[]
+
+  @@map("infrastructure")
+}
+
+model Severity {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String           @db.VarChar
+  cluster         Cluster[]
+  incident_header IncidentHeader[]
+
+  @@map("severity")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model metrics {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  infrastructure_id String         @db.Uuid
+  mttd              Int
+  mttr              Int
+  rca_time          Int
+  time              DateTime?      @db.Timestamptz(6)
+  infrastructure    Infrastructure @relation(fields: [infrastructure_id], references: [id], onDelete: Cascade)
 }

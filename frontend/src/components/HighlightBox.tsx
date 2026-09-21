@@ -41,8 +41,8 @@ export default function HighlightBox({
       <header className="font-medium text-slate-400 text-xs uppercase tracking-wide">
         {title}
       </header>
-      <div className="flex items-baseline gap-2 mt-2">
-        <h1 className={`${valueClass[tone]} text-xl font-semibold lg:text-2xl`}>
+      <div className="flex items-end pt-1 lg:pt-1.5 lg:gap-x-2">
+        <h1 className={`${valueClass[tone]} text-base font-bold text-center leading-none lg:text-2xl`}>
           {value}
         </h1>
         <p className={`${descriptionClass[tone]} text-xs font-medium`}>

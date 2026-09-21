@@ -1,9 +1,74 @@
-export type Severity = "Critical" | "High" | "Medium" | "Low";
 export type IncidentStatus = "Open" | "In Progress" | "Recovered" | "Resolved";
 export type ResourceKind = "pods" | "services";
 export type HighlightTone = "neutral" | "ok" | "warning" | "critical";
 export type LogLevel = "info" | "error" | "warn" | "debug";
 export type TopologyKind = "web" | "gateway" | "service" | "db";
+
+export type Cluster = {
+  id: string;
+  pod_count: number;
+  container_count: number;
+  service_count: number;
+  node_count: number;
+}
+
+export type ClusterSubsystems = {
+  pod_count: number;
+  container_count: number;
+  service_count: number;
+  node_count: number;
+}
+
+export type Infrastructure = {
+  id: string;
+  cluster_id?: string;
+  health: number;
+  mttd: number;
+  mttr: number;
+  rca_time: number;
+  user_id: string;
+}
+
+export type Metrics = {
+  mttd: number;
+  mttr: number;
+  rca_time: number;
+  time: string;
+}
+
+export type IncidentHeader = {
+  id: string;
+  code: string;
+  title: string;
+  namespace: string;
+  severity: Severity;
+  status: string;
+  cause: string;
+  cpu_usage: number;
+  memory_usage: number;
+  restart_count: number;
+  confidence: number;
+  start_time: string;
+  end_time: string;
+  affected_service: string;  
+}
+
+export type IncidentTimeline = {
+  time_log: string;
+  title: string;
+  description: string;
+  additional_description: string;
+}
+
+export type Severity = {
+  id: string;
+  name: string;
+}
+
+export type Message = {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export type HighlightStat = {
   title: string;
@@ -126,11 +191,6 @@ export type TimelineEvent = {
   description: string[];
   color: string;
   details: TimelineDetailField[];
-};
-
-export type IncidentTimeline = {
-  incident: IncidentDetail;
-  events: TimelineEvent[];
 };
 
 export type ConfigLine = {

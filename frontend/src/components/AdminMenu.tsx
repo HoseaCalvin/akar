@@ -4,8 +4,8 @@ import { ChevronDown, CircleUser } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 export default function AdminMenu() {
-  const { data: session } = authClient.useSession();
-  const username = session?.user?.name ?? "Admin";
+  const { data } = authClient.useSession();
+  const username = data?.user?.name ?? "User";
 
   return (
     <menu className="flex gap-x-3 p-3 rounded-xl glass-effect">

@@ -3,6 +3,7 @@
 import { useRef, useState, type Dispatch, type PointerEvent, type SetStateAction, type WheelEvent } from "react";
 import { ChevronLeft, Minus, Plus, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
+
 import TopBar from "@/components/TopBar";
 import TableDetail from "@/components/TableDetail";
 import PageState from "@/components/PageState";
