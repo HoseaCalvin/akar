@@ -19,7 +19,7 @@ export const MOCK_EVENT_ID = "evt-config-change";
 export const MOCK_RESOURCE_ID = "postgresql-primary";
 
 export const mockDashboard: DashboardSummary = {
-  greetingName: "Zick",
+  greetingName: "John Doe",
   counts: { nodes: 12, pods: 84, deployments: 24, services: 18, namespaces: 3 },
   health: {
     critical: 20,
