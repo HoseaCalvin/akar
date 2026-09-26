@@ -37,7 +37,7 @@ export default function TableDetail({
   ];
 
   return (
-    <div className="bg-[#F0F3FC] shadow-lg/10 flex flex-col min-h-screen flex-1 lg:px-5 lg:py-6 lg:rounded-3xl lg:my-4">
+    <div className="bg-[#F0F3FC] shadow-lg/10 flex flex-col min-h-full flex-1 lg:px-5 xl:px-8 2xl:px-10 lg:py-6 lg:rounded-3xl lg:my-4">
       <header className="flex justify-between items-center w-full h-fit">
         <div className="flex flex-1 gap-x-2.5">
           {tabs.map((tab) => (

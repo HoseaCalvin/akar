@@ -11,6 +11,10 @@ import {
   Search,
   Clock3,
   ChevronDown,
+  ChevronRight,
+  MoreHorizontal,
+  ExternalLink,
+  Filter,
 } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import EChart from "@/components/EChart";
@@ -277,19 +281,25 @@ const MOCK_NODES = MOCK_ENTITIES.filter(
 
 const MOCK_ENDPOINTS = [
   {
-    ip: "10.20.2.8",
+    ip: "10.20.14.15",
     node: "worker-01",
-    status: "Safe",
+    status: "Critical",
+    health: "Down",
+    lastSeen: "2m ago",
   },
   {
-    ip: "10.20.22.110",
+    ip: "10.20.14.16",
     node: "worker-02",
-    status: "Affected",
+    status: "Critical",
+    health: "Up",
+    lastSeen: "4m ago",
   },
   {
-    ip: "10.20.22.115",
+    ip: "10.20.14.17",
     node: "worker-03",
-    status: "Safe",
+    status: "Warning",
+    health: "High Latency",
+    lastSeen: "6m ago",
   },
 ];
 
@@ -317,15 +327,18 @@ const MOCK_POD_DEPENDENCIES = {
 const MOCK_RELATED_SERVICES = [
   {
     name: "pymt-svc",
+    namespace: "pymt",
     status: "Critical",
   },
   {
     name: "order-svc",
-    status: "Affected",
+    namespace: "order",
+    status: "Critical",
   },
   {
     name: "user-svc",
-    status: "Safe",
+    namespace: "user",
+    status: "Warning",
   },
 ];
 
@@ -366,7 +379,7 @@ function statusTextColor(status: string) {
 function statusDot(status: string) {
   switch (status) {
     case "Safe":
-      return "bg-slate-400";
+      return "bg-green-500";
     case "Anomalous":
       return "bg-red-500";
     case "Affected":
@@ -375,6 +388,12 @@ function statusDot(status: string) {
       return "bg-red-600";
     case "Critical":
       return "bg-red-500";
+    case "Warning":
+      return "bg-orange-500";
+    case "Healthy":
+      return "bg-green-500";
+    case "Running":
+      return "bg-green-500";
     default:
       return "bg-slate-300";
   }
@@ -388,6 +407,8 @@ function statusDotColor(status: string) {
       return "text-orange-500";
     case "Critical":
       return "text-red-500";
+    case "Warning":
+      return "text-orange-500";
     default:
       return "text-slate-400";
   }
@@ -536,9 +557,7 @@ function DependenciesLegend() {
         />
 
         <DepItem
-          icon={
-            <LegendLine type="dashed" />
-          }
+          icon={<LegendLine type="dashed" />}
           label="Data Flow"
         />
 
@@ -553,9 +572,7 @@ function DependenciesLegend() {
         />
 
         <DepItem
-          icon={
-            <LegendLine type="solid" />
-          }
+          icon={<LegendLine type="solid" />}
           label="Dependency"
         />
       </div>
@@ -777,9 +794,7 @@ function TopoGraph({
     positions,
     canvasH,
     CANVAS_W,
-  } = buildLayout(
-    visibleEntities,
-  );
+  } = buildLayout(visibleEntities);
 
   const related = useMemo(() => {
     if (!selected) {
@@ -811,13 +826,8 @@ function TopoGraph({
     source: string,
     target: string,
   ) {
-    const sourceEntity = getEntity(
-      source,
-    );
-
-    const targetEntity = getEntity(
-      target,
-    );
+    const sourceEntity = getEntity(source);
+    const targetEntity = getEntity(target);
 
     if (
       sourceEntity?.status === "Anomalous" ||
@@ -842,13 +852,8 @@ function TopoGraph({
     source: string,
     target: string,
   ) {
-    const sourceEntity = getEntity(
-      source,
-    );
-
-    const targetEntity = getEntity(
-      target,
-    );
+    const sourceEntity = getEntity(source);
+    const targetEntity = getEntity(target);
 
     if (
       sourceEntity?.status === "Anomalous" ||
@@ -899,23 +904,15 @@ function TopoGraph({
           </defs>
 
           {visibleEdges.map((edge) => {
-            const source = positions.get(
-              edge.source,
-            );
-
-            const target = positions.get(
-              edge.target,
-            );
+            const source = positions.get(edge.source);
+            const target = positions.get(edge.target);
 
             if (!source || !target) {
               return null;
             }
 
-            const sourceEntity =
-              getEntity(edge.source);
-
-            const targetEntity =
-              getEntity(edge.target);
+            const sourceEntity = getEntity(edge.source);
+            const targetEntity = getEntity(edge.target);
 
             const color = edgeColor(
               edge.source,
@@ -928,9 +925,7 @@ function TopoGraph({
             );
 
             const isVertical =
-              Math.abs(
-                source.x - target.x,
-              ) < 2;
+              Math.abs(source.x - target.x) < 2;
 
             const middleY =
               (source.y + target.y) / 2;
@@ -943,47 +938,31 @@ function TopoGraph({
               } L ${target.x} ${
                 target.y - 23
               }`;
-            } else if (
-              source.y < target.y
-            ) {
+            } else if (source.y < target.y) {
               path = `M ${source.x} ${
                 source.y + 23
-              } C ${
-                source.x
-              } ${middleY}, ${
+              } C ${source.x} ${middleY}, ${
                 target.x
-              } ${middleY}, ${
-                target.x
-              } ${
+              } ${middleY}, ${target.x} ${
                 target.y - 23
               }`;
             } else {
               path = `M ${source.x} ${
                 source.y - 23
-              } C ${
-                source.x
-              } ${middleY}, ${
+              } C ${source.x} ${middleY}, ${
                 target.x
-              } ${middleY}, ${
-                target.x
-              } ${
+              } ${middleY}, ${target.x} ${
                 target.y + 23
               }`;
             }
 
             const isProblem =
-              sourceEntity?.status ===
-                "Anomalous" ||
-              targetEntity?.status ===
-                "Anomalous" ||
-              sourceEntity?.status ===
-                "Affected" ||
-              targetEntity?.status ===
-                "Affected" ||
-              sourceEntity?.status ===
-                "Root Cause" ||
-              targetEntity?.status ===
-                "Root Cause";
+              sourceEntity?.status === "Anomalous" ||
+              targetEntity?.status === "Anomalous" ||
+              sourceEntity?.status === "Affected" ||
+              targetEntity?.status === "Affected" ||
+              sourceEntity?.status === "Root Cause" ||
+              targetEntity?.status === "Root Cause";
 
             const active =
               !selected ||
@@ -998,13 +977,9 @@ function TopoGraph({
                 d={path}
                 stroke={color}
                 strokeDasharray={dash}
-                strokeWidth={
-                  isProblem ? 1.8 : 1.3
-                }
+                strokeWidth={isProblem ? 1.8 : 1.3}
                 opacity={
-                  selected && !active
-                    ? 0.12
-                    : 0.9
+                  selected && !active ? 0.12 : 0.9
                 }
                 fill="none"
                 markerEnd="url(#topo-arrow)"
@@ -1014,18 +989,14 @@ function TopoGraph({
         </svg>
 
         {visibleEntities.map((entity) => {
-          const position =
-            positions.get(entity.id);
+          const position = positions.get(entity.id);
 
           if (!position) {
             return null;
           }
 
-          const isSelected =
-            selected === entity.id;
-
-          const isRelated =
-            related.has(entity.id);
+          const isSelected = selected === entity.id;
+          const isRelated = related.has(entity.id);
 
           const dimmed =
             selected &&
@@ -1038,9 +1009,7 @@ function TopoGraph({
               type="button"
               onClick={() =>
                 onSelect(
-                  isSelected
-                    ? null
-                    : entity.id,
+                  isSelected ? null : entity.id,
                 )
               }
               style={{
@@ -1127,11 +1096,8 @@ function EntityIcon({
           rx="10"
           ry="4"
         />
-
         <path d="M6 7v15c0 2.2 4.5 4 10 4s10-1.8 10-4V7" />
-
         <path d="M6 14c0 2.2 4.5 4 10 4s10-1.8 10-4" />
-
         <path d="M6 21c0 2.2 4.5 4 10 4s10-1.8 10-4" />
       </svg>
     );
@@ -1165,9 +1131,7 @@ function TopologyPanel({
   entities: MockEntity[];
   edges: MockEdge[];
   selected: string | null;
-  onSelect: (
-    id: string | null,
-  ) => void;
+  onSelect: (id: string | null) => void;
 }) {
   const ROW_H = 72;
 
@@ -1193,9 +1157,7 @@ function TopologyPanel({
           className="flex items-center gap-1.5 rounded-[9px] border border-slate-300 bg-white/65 px-2.5 py-1.5 text-[10px] font-medium text-slate-600 shadow-[0_4px_12px_rgba(65,84,130,0.06)] backdrop-blur-xl transition hover:bg-white/80 sm:text-[11px]"
         >
           <Clock3 className="h-3 w-3" />
-
           Last 15 minutes
-
           <ChevronDown className="h-3 w-3" />
         </button>
       </div>
@@ -1306,16 +1268,14 @@ function DetailPanel({
   selected: string | null;
 }) {
   const [activeTab, setActiveTab] =
-    useState<DetailTab>("Services");
+    useState<DetailTab>("Pods");
 
   const [searchQ, setSearchQ] =
     useState("");
 
   const [selectedSvc, setSelectedSvc] =
     useState<MockEntity>(
-      MOCK_SERVICES.find(
-        (item) => item.id === "svc-2",
-      ) ?? MOCK_SERVICES[0],
+      MOCK_SERVICES[0],
     );
 
   const [selectedPod, setSelectedPod] =
@@ -1323,24 +1283,21 @@ function DetailPanel({
       MOCK_PODS[1],
     );
 
-  const selectedEntity =
-    selected
-      ? MOCK_ENTITIES.find(
-          (entity) =>
-            entity.id === selected,
-        )
-      : null;
+  const selectedEntity = selected
+    ? MOCK_ENTITIES.find(
+        (entity) => entity.id === selected,
+      )
+    : null;
 
   const tabItems: Record<
     DetailTab,
     MockEntity[]
   > = useMemo(
     () => ({
-      Clusters:
-        MOCK_ENTITIES.filter(
-          (entity) =>
-            entity.kind === "CLUSTER",
-        ),
+      Clusters: MOCK_ENTITIES.filter(
+        (entity) =>
+          entity.kind === "CLUSTER",
+      ),
       Nodes: MOCK_NODES,
       Pods: MOCK_PODS,
       Services: MOCK_SERVICES,
@@ -1348,28 +1305,26 @@ function DetailPanel({
     [],
   );
 
-  const filteredList =
-    useMemo(() => {
-      const items =
-        tabItems[activeTab];
+  const filteredList = useMemo(() => {
+    const items =
+      tabItems[activeTab];
 
-      if (!searchQ.trim()) {
-        return items;
-      }
+    if (!searchQ) {
+      return items;
+    }
 
-      return items.filter(
-        (entity) =>
-          entity.name
-            .toLowerCase()
-            .includes(
-              searchQ.toLowerCase(),
-            ),
-      );
-    }, [
-      activeTab,
-      searchQ,
-      tabItems,
-    ]);
+    return items.filter((entity) =>
+      entity.name
+        .toLowerCase()
+        .includes(
+          searchQ.toLowerCase(),
+        ),
+    );
+  }, [
+    activeTab,
+    searchQ,
+    tabItems,
+  ]);
 
   const tabs: DetailTab[] = [
     "Clusters",
@@ -1379,8 +1334,8 @@ function DetailPanel({
   ];
 
   return (
-    <div className="overflow-hidden rounded-[22px] border border-white/80 bg-[#edf2fc]/90 shadow-[0_12px_35px_rgba(65,84,130,0.10)]">
-      <div className="flex h-[58px] items-end gap-1 overflow-x-auto border-b border-white/80 px-5">
+    <div className="w-full overflow-hidden rounded-[22px] border border-white/80 bg-[#eef2fb] shadow-sm">
+      <div className="mb-3 flex h-[48px] items-end gap-1 overflow-x-auto px-4">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -1388,185 +1343,355 @@ function DetailPanel({
             onClick={() =>
               setActiveTab(tab)
             }
-            className={`relative flex h-full shrink-0 items-center px-5 pt-1 text-[13px] font-medium transition ${
+            className={`relative flex h-[44px] shrink-0 items-center px-5 text-[13px] font-medium transition ${
               activeTab === tab
                 ? "text-blue-600"
-                : "text-slate-800 hover:text-blue-500"
+                : "text-slate-700 hover:text-blue-600"
             }`}
           >
             {tab}
 
             {activeTab === tab && (
-              <span className="absolute bottom-0 left-1/2 h-[3px] w-[72px] -translate-x-1/2 rounded-t-full bg-blue-500" />
+              <span className="absolute bottom-[-1px] left-1/2 h-[2px] w-[52px] -translate-x-1/2 rounded-full bg-blue-500" />
             )}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-[300px_minmax(0,1.55fr)_minmax(0,1.8fr)]">
-        <div className="min-w-0 rounded-[16px] bg-white/90 p-3 shadow-[0_4px_15px_rgba(65,84,130,0.06)]">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-[15px] font-semibold text-slate-900">
-              {activeTab}
+      <div className="overflow-x-auto px-3 pb-3 sm:px-4">
+        <div className={`flex gap-[10px] ${activeTab === "Pods" ? "min-w-[1780px]" : ""}`}>
 
-              {activeTab ===
-                "Services" && (
-                <span className="ml-1 font-normal text-slate-400">
-                  (32)
-                </span>
-              )}
+          <div className="h-[218px] w-[290px] shrink-0 rounded-[18px] border border-slate-100 bg-white p-3 shadow-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[17px] font-semibold leading-none text-slate-900">
+                {activeTab === "Pods"
+                  ? "Pods (12)"
+                  : `${activeTab} (${filteredList.length})`}
+              </p>
+            </div>
 
-              {activeTab !==
-                "Services" && (
-                <span className="ml-1 font-normal text-slate-400">
-                  ({filteredList.length})
-                </span>
-              )}
-            </p>
-          </div>
+            <div className="relative mb-2.5">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
 
-          <div className="relative mb-2">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                value={searchQ}
+                onChange={(event) =>
+                  setSearchQ(event.target.value)
+                }
+                placeholder={`Search ${activeTab.toLowerCase()}...`}
+                className="h-[28px] w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-[9px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:ring-1 focus:ring-blue-100"
+              />
+            </div>
 
-            <input
-              type="text"
-              value={searchQ}
-              onChange={(event) =>
-                setSearchQ(
-                  event.target.value,
-                )
-              }
-              placeholder={
-                activeTab ===
-                "Services"
-                  ? "Search pods..."
-                  : "Search..."
-              }
-              className="h-[30px] w-full rounded-[7px] border border-slate-300 bg-white px-2 pl-8 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
-            />
-          </div>
+            <div className="max-h-[137px] overflow-y-auto">
+              {filteredList.map((item) => {
+                const active =
+                  (activeTab === "Services" &&
+                    selectedSvc.id === item.id) ||
+                  (activeTab === "Pods" &&
+                    selectedPod.id === item.id);
 
-          <div className="overflow-hidden rounded-[7px] border border-slate-200 bg-white">
-            <div className="max-h-[176px] overflow-y-auto">
-              {filteredList.map(
-                (item) => {
-                  const active =
-                    (activeTab ===
-                      "Services" &&
-                      selectedSvc.id ===
-                        item.id) ||
-                    (activeTab ===
-                      "Pods" &&
-                      selectedPod.id ===
-                        item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (activeTab === "Services") {
+                        setSelectedSvc(item);
+                      }
 
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        if (
-                          activeTab ===
-                          "Services"
-                        ) {
-                          setSelectedSvc(
-                            item,
-                          );
-                        }
+                      if (activeTab === "Pods") {
+                        setSelectedPod(item);
+                      }
+                    }}
+                    className={`group flex h-[28px] w-full items-center gap-2 border-b border-slate-100 px-1.5 text-left transition ${
+                      active
+                        ? "bg-blue-50"
+                        : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${statusDot(
+                        item.status,
+                      )}`}
+                    />
 
-                        if (
-                          activeTab ===
-                          "Pods"
-                        ) {
-                          setSelectedPod(
-                            item,
-                          );
-                        }
-                      }}
-                      className={`flex h-[28px] w-full items-center gap-2 border-b border-slate-100 px-3 text-left last:border-b-0 ${
-                        active
-                          ? "bg-[#e9effc]"
-                          : "bg-white hover:bg-slate-50"
-                      }`}
-                    >
-                      <span
-                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDot(
-                          item.status,
-                        )}`}
-                      />
+                    <Box className="h-3.5 w-3.5 shrink-0 text-slate-600" />
 
-                      <span className="truncate text-[11px] font-medium text-slate-700">
-                        {item.name}
-                      </span>
-                    </button>
-                  );
-                },
-              )}
+                    <span className="min-w-0 flex-1 truncate text-[9px] text-slate-700">
+                      {item.name}
+                    </span>
 
-              {activeTab ===
-                "Services" && (
-                <div className="flex h-[27px] items-center border-t border-slate-100 px-3 text-[10px] font-medium text-slate-700">
-                  + 27 more
-                </div>
-              )}
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[7px] text-slate-500">
+                      {activeTab === "Services"
+                        ? "8 pods"
+                        : item.namespace ?? "default"}
+                    </span>
+
+                    <span className="shrink-0 text-[15px] leading-none text-slate-300">
+                      ›
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          <div className="h-[218px] w-[560px] shrink-0 rounded-[18px] border border-slate-100 bg-white p-4 shadow-sm">
+            {activeTab === "Services" && (
+              <ServiceDetail
+                svc={selectedSvc}
+              />
+            )}
+
+            {activeTab === "Pods" && (
+              <PodDetail
+                pod={selectedPod}
+              />
+            )}
+
+            {activeTab === "Nodes" && (
+              <NodeDetail />
+            )}
+
+            {activeTab === "Clusters" && (
+              <ClusterDetail
+                entity={selectedEntity}
+              />
+            )}
+          </div>
+
+          <div className={`shrink-0 rounded-[18px] border border-slate-100 bg-white p-4 shadow-sm ${activeTab === "Pods" ? "h-[218px] w-[410px]" : "h-[218px] w-[410px]"}`}>
+            {activeTab === "Services" && (
+              <EndpointsPanel />
+            )}
+
+            {activeTab === "Pods" && (
+              <PodDependencies
+                podId={selectedPod.id}
+              />
+            )}
+
+            {activeTab === "Nodes" && (
+              <EndpointsPanel />
+            )}
+
+            {activeTab === "Clusters" && (
+              <EndpointsPanel />
+            )}
+          </div>
+
+          {activeTab === "Pods" && (
+            <div className="h-[218px] w-[360px] shrink-0 rounded-[18px] border border-slate-100 bg-white p-4 shadow-sm">
+              <RelatedServicesPanel />
+            </div>
+          )}
+
+
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="min-w-0 rounded-[16px] bg-white/90 p-3 shadow-[0_4px_15px_rgba(65,84,130,0.06)]">
-          {activeTab ===
-            "Services" && (
-            <ServiceDetail
-              svc={selectedSvc}
-            />
-          )}
+function ServiceListPanel({
+  filteredList,
+  selectedSvc,
+  searchQ,
+  setSearchQ,
+  onSelect,
+}: {
+  filteredList: MockEntity[];
+  selectedSvc: MockEntity;
+  searchQ: string;
+  setSearchQ: (
+    value: string,
+  ) => void;
+  onSelect: (
+    entity: MockEntity,
+  ) => void;
+}) {
+  return (
+    <div className="min-w-0 self-start rounded-[16px] bg-white/90 p-3.5 shadow-[0_4px_15px_rgba(65,84,130,0.06)]">
+      <div className="mb-2.5 flex items-center justify-between">
+        <p className="text-[17px] font-semibold tracking-tight text-slate-900">
+          Services
+          <span className="ml-1 font-normal text-slate-400">
+            (32)
+          </span>
+        </p>
+      </div>
 
-          {activeTab ===
-            "Pods" && (
-            <PodDetail
-              pod={selectedPod}
-            />
-          )}
+      <div className="relative mb-2.5">
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
 
-          {activeTab ===
-            "Nodes" && (
-            <NodeDetail />
-          )}
+        <input
+          type="text"
+          value={searchQ}
+          onChange={(event) =>
+            setSearchQ(
+              event.target.value,
+            )
+          }
+          placeholder="Search pods..."
+          className="h-[30px] w-full rounded-[7px] border border-slate-300 bg-white px-2 pl-8 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+        />
+      </div>
 
-          {activeTab ===
-            "Clusters" && (
-            <ClusterDetail
-              entity={
-                selectedEntity
-              }
-            />
+      <div className="overflow-hidden rounded-[7px] border border-slate-200 bg-white">
+        <div className="overflow-y-auto">
+          {filteredList.map(
+            (item) => {
+              const active =
+                selectedSvc.id ===
+                item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    onSelect(item)
+                  }
+                  className={`flex h-[34px] w-full items-center gap-2 border-b border-slate-100 px-3 text-left last:border-b-0 ${
+                    active
+                      ? "bg-[#eef4ff]"
+                      : "bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDot(
+                      item.status,
+                    )}`}
+                  />
+
+                  <Box
+                    className="h-3.5 w-3.5 shrink-0 text-slate-800"
+                    strokeWidth={1.7}
+                  />
+
+                  <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-slate-700">
+                    {item.name}
+                  </span>
+
+                  <span className="shrink-0 rounded-full bg-[#edf2fa] px-2 py-0.5 text-[8px] font-medium text-slate-500">
+                    8 pods
+                  </span>
+
+                  <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                </button>
+              );
+            },
           )}
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="min-w-0 rounded-[16px] bg-white/90 p-3 shadow-[0_4px_15px_rgba(65,84,130,0.06)]">
-          {activeTab ===
-            "Services" && (
-            <EndpointsPanel />
+function PodListPanel({
+  filteredList,
+  selectedPod,
+  searchQ,
+  setSearchQ,
+  onSelect,
+}: {
+  filteredList: MockEntity[];
+  selectedPod: MockEntity;
+  searchQ: string;
+  setSearchQ: (
+    value: string,
+  ) => void;
+  onSelect: (
+    entity: MockEntity,
+  ) => void;
+}) {
+  return (
+    <div className="min-w-0 rounded-[16px] bg-white/90 p-4 shadow-[0_4px_15px_rgba(65,84,130,0.06)]">
+      <div className="mb-3">
+        <p className="text-[17px] font-semibold tracking-tight text-slate-900">
+          Pods
+          <span className="ml-1 font-normal text-slate-400">
+            (12)
+          </span>
+        </p>
+      </div>
+
+      <div className="relative mb-3">
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+
+        <input
+          type="text"
+          value={searchQ}
+          onChange={(event) =>
+            setSearchQ(
+              event.target.value,
+            )
+          }
+          placeholder="Search pods..."
+          className="h-[30px] w-full rounded-[7px] border border-slate-300 bg-white px-2 pl-8 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+        />
+      </div>
+
+      <div className="overflow-hidden rounded-[7px] border border-slate-200 bg-white">
+        <div className="max-h-[190px] overflow-y-auto">
+          {filteredList.map(
+            (item) => {
+              const active =
+                selectedPod.id ===
+                item.id;
+
+              const namespace =
+                item.name.startsWith("user")
+                  ? "user"
+                  : item.name.startsWith("notif")
+                    ? "notif"
+                    : item.name.startsWith("order")
+                      ? "order"
+                      : "pymt";
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    onSelect(item)
+                  }
+                  className={`flex h-[34px] w-full items-center gap-2 border-b border-slate-100 px-3 text-left last:border-b-0 ${
+                    active
+                      ? "bg-[#eef4ff]"
+                      : "bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDot(
+                      item.status,
+                    )}`}
+                  />
+
+                  <Box
+                    className="h-3.5 w-3.5 shrink-0 text-slate-800"
+                    strokeWidth={1.7}
+                  />
+
+                  <span className="min-w-0 flex-1 truncate text-[10px] font-medium text-slate-700">
+                    {item.name}
+                  </span>
+
+                  <span className="shrink-0 rounded-full bg-[#edf2fa] px-2 py-0.5 text-[8px] font-medium text-slate-500">
+                    {namespace}
+                  </span>
+
+                  <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                </button>
+              );
+            },
           )}
 
-          {activeTab ===
-            "Pods" && (
-            <PodDependencies
-              podId={
-                selectedPod.id
-              }
-            />
-          )}
-
-          {activeTab ===
-            "Nodes" && (
-            <EndpointsPanel />
-          )}
-
-          {activeTab ===
-            "Clusters" && (
-            <EndpointsPanel />
-          )}
+          <div className="flex h-[31px] items-center border-t border-slate-100 px-3 text-[9px] font-medium text-slate-500">
+            + 8 more
+          </div>
         </div>
       </div>
     </div>
@@ -1578,109 +1703,116 @@ function ServiceDetail({
 }: {
   svc: MockEntity;
 }) {
-  const [metricTab, setMetricTab] =
-    useState<
-      | "Metrics"
-      | "Logs"
-      | "Events"
-      | "YAML"
-    >("Metrics");
-
   return (
-    <div>
-      <div className="mb-3 flex items-center gap-1.5">
-        <span
-          className={`h-2 w-2 rounded-full ${statusDot(
-            svc.status,
-          )}`}
-        />
+    <div className="h-full">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500">
+          <Box className="h-5 w-5 text-slate-900" />
+        </div>
 
-        <p className="text-xs font-semibold text-slate-700">
-          {svc.name}
-        </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-[19px] font-semibold leading-none text-slate-900">
+              pmt-svc
+            </p>
+
+            <span className="rounded-full bg-green-100 px-3 py-1 text-[8px] font-medium text-green-700">
+              Healthy
+            </span>
+
+            <button
+              type="button"
+              className="flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[8px] text-slate-600"
+            >
+              View Logs
+              <span className="text-[10px]">
+                ↗
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] text-slate-400"
+            >
+              •••
+            </button>
+          </div>
+
+          <div className="mt-2 flex items-center gap-2 text-[9px] text-slate-500">
+            <span>Service</span>
+
+            <span>•</span>
+
+            <span>Cluster 1</span>
+
+            <span>•</span>
+
+            <span>Production</span>
+          </div>
+        </div>
       </div>
 
-      {svc.meta && (
-        <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
-          {Object.entries(
-            svc.meta,
-          ).map(
-            ([key, value]) => (
-              <div
-                key={key}
-                className="min-w-0"
-              >
-                <p className="text-slate-400">
-                  {key}
-                </p>
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="h-[86px] rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
+          <p className="text-[8px] text-slate-500">
+            Request/sec
+          </p>
 
-                <p className="truncate font-medium text-slate-700">
-                  {value}
-                </p>
-              </div>
-            ),
-          )}
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[17px] font-semibold text-slate-900">
+              1.2k
+            </span>
+
+            <span className="text-[7px] font-medium text-green-500">
+              ↑ 12%
+            </span>
+          </div>
+
+          <div className="mt-1">
+            <Sparkline color="#22c55e" />
+          </div>
         </div>
-      )}
 
-      <div className="mb-2 flex gap-3">
-        {[
-          "Metrics",
-          "Logs",
-          "Events",
-          "YAML",
-        ].map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() =>
-              setMetricTab(
-                tab as
-                  | "Metrics"
-                  | "Logs"
-                  | "Events"
-                  | "YAML",
-              )
-            }
-            className={`border-b pb-0.5 text-[10px] font-semibold ${
-              metricTab === tab
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-slate-400"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        <div className="h-[86px] rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
+          <p className="text-[8px] text-slate-500">
+            Error Rate
+          </p>
+
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[17px] font-semibold text-slate-900">
+              0.3%
+            </span>
+
+            <span className="text-[7px] font-medium text-green-500">
+              ↓ 4.5%
+            </span>
+          </div>
+
+          <div className="mt-1">
+            <Sparkline color="#ef4444" />
+          </div>
+        </div>
+
+        <div className="h-[86px] rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
+          <p className="text-[8px] text-slate-500">
+            Latency (p95)
+          </p>
+
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[17px] font-semibold text-slate-900">
+              42ms
+            </span>
+
+            <span className="text-[7px] font-medium text-green-500">
+              ↓ 1.2%
+            </span>
+          </div>
+
+          <div className="mt-1">
+            <Sparkline color="#6366f1" />
+          </div>
+        </div>
       </div>
-
-      {metricTab ===
-        "Metrics" && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <MetricSparkCard
-            label="Request/sec"
-            value="1.2k"
-            delta="+13%"
-            up
-            color="#3b82f6"
-          />
-
-          <MetricSparkCard
-            label="Error Rate"
-            value="0.3%"
-            delta="-44%"
-            up={false}
-            color="#ef4444"
-          />
-
-          <MetricSparkCard
-            label="Latency"
-            value="42ms"
-            delta="+26%"
-            up
-            color="#10b981"
-          />
-        </div>
-      )}
     </div>
   );
 }
@@ -1699,26 +1831,32 @@ function MetricSparkCard({
   color: string;
 }) {
   return (
-    <div>
-      <p className="mb-0.5 text-[10px] text-slate-400">
+    <div className="overflow-hidden rounded-[12px] border border-slate-200 bg-white px-3 py-2.5">
+      <p className="mb-0.5 text-[9px] text-slate-400">
         {label}
       </p>
 
-      <p className="font-bold text-slate-800">
-        {value}
-      </p>
+      <div className="flex items-end gap-2">
+        <p className="text-[19px] font-semibold leading-none text-slate-900">
+          {value}
+        </p>
 
-      <p
-        className={`text-[9px] ${
-          up
-            ? "text-green-500"
-            : "text-red-500"
-        }`}
-      >
-        {up ? "▲" : "▼"} {delta}
-      </p>
+        {delta && (
+          <p
+            className={`mb-0.5 text-[8px] font-semibold ${
+              up
+                ? "text-green-500"
+                : "text-red-500"
+            }`}
+          >
+            {up ? "↑" : "↓"} {delta}
+          </p>
+        )}
+      </div>
 
-      <Sparkline color={color} />
+      <div className="-mx-1 mt-1">
+        <Sparkline color={color} />
+      </div>
     </div>
   );
 }
@@ -1738,96 +1876,104 @@ function PodDetail({
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-1.5">
-        <span
-          className={`h-2 w-2 rounded-full ${statusDot(
-            pod.status,
-          )}`}
-        />
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#5fbd00]">
+            <Box
+              className="h-[18px] w-[18px] text-white"
+              strokeWidth={2}
+            />
+          </span>
 
-        <p className="text-xs font-semibold text-slate-700">
-          {pod.name}
-        </p>
-      </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-[19px] font-semibold leading-none tracking-tight text-slate-900">
+                {pod.name}
+              </p>
 
-      {pod.meta && (
-        <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
-          {Object.entries(
-            pod.meta,
-          ).map(
-            ([key, value]) => (
-              <div key={key}>
-                <p className="text-slate-400">
-                  {key}
+              <span className="rounded-full bg-[#e6f5d6] px-3 py-1 text-[8px] font-semibold text-green-700">
+                Running
+              </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-[8px] text-slate-400">
+                  Namespace
                 </p>
 
-                <p className="font-medium text-slate-700">
-                  {value}
+                <p className="mt-0.5 text-[10px] font-medium text-slate-700">
+                  pymt
                 </p>
               </div>
-            ),
-          )}
-        </div>
-      )}
 
-      <div className="mb-2 flex gap-3">
-        {[
-          "Metrics",
-          "Logs",
-          "Events",
-          "YAML",
-        ].map((tab) => (
+              <div>
+                <p className="text-[8px] text-slate-400">
+                  Node
+                </p>
+
+                <p className="mt-0.5 text-[10px] font-medium text-slate-700">
+                  worker-02
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[8px] text-slate-400">
+                  Restart
+                </p>
+
+                <p className="mt-0.5 text-[10px] font-medium text-slate-700">
+                  4
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
           <button
-            key={tab}
             type="button"
-            onClick={() =>
-              setMetricTab(
-                tab as
-                  | "Metrics"
-                  | "Logs"
-                  | "Events"
-                  | "YAML",
-              )
-            }
-            className={`border-b pb-0.5 text-[10px] font-semibold ${
-              metricTab === tab
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-slate-400"
-            }`}
+            className="hidden items-center gap-1 rounded-[6px] border border-slate-200 bg-white px-2 py-1.5 text-[9px] font-medium text-slate-500 shadow-sm sm:flex"
           >
-            {tab}
+            View Logs
+            <ExternalLink className="h-3 w-3" />
           </button>
-        ))}
+
+          <button
+            type="button"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f1f5fb] text-slate-400"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
-      {metricTab ===
-        "Metrics" && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <p className="mb-0.5 text-[10px] text-slate-400">
-              CPU Usage
-            </p>
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <MetricSparkCard
+          label="CPU Usage"
+          value="89%"
+          delta="12%"
+          up
+          color="#4ade35"
+        />
 
-            <p className="text-base font-bold text-slate-800">
-              89%
-            </p>
+        <MetricSparkCard
+          label="Memory Usage"
+          value="87%"
+          delta="8%"
+          up
+          color="#ff5353"
+        />
 
-            <Sparkline color="#ef4444" />
-          </div>
+        <MetricSparkCard
+          label="Restarts"
+          value="4"
+          delta=""
+          up={false}
+          color="#5b7cff"
+        />
+      </div>
 
-          <div>
-            <p className="mb-0.5 text-[10px] text-slate-400">
-              Memory Usage
-            </p>
-
-            <p className="text-base font-bold text-slate-800">
-              87%
-            </p>
-
-            <Sparkline color="#ef4444" />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1918,61 +2064,111 @@ function ClusterDetail({
 function EndpointsPanel() {
   return (
     <div>
-      <p className="mb-3 text-xs font-semibold text-slate-700">
-        End Points
-      </p>
+      <div className="mb-2.5 flex items-center justify-between gap-3">
+        <p className="text-[17px] font-semibold tracking-tight text-slate-900">
+          <Network className="mr-1.5 inline-block h-4 w-4 text-slate-500" />End Points
+        </p>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[360px] text-xs">
+        <div className="flex items-center gap-2">
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+
+            <input
+              type="text"
+              placeholder="Search Endpoint"
+              className="h-[30px] w-[145px] rounded-full border-0 bg-[#f1f5fb] pl-7 pr-2 text-[9px] text-slate-600 outline-none placeholder:text-slate-400"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#f1f5fb] text-slate-400"
+          >
+            <Filter className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[10px]">
+        <table className="w-full min-w-[520px] text-xs">
           <thead>
-            <tr className="text-[10px] uppercase tracking-wide text-slate-400">
-              <th className="pb-1.5 text-left font-medium">
+            <tr className="bg-[#e9eefc] text-[9px] font-medium text-slate-500">
+              <th className="rounded-l-[9px] px-4 py-2 text-left">
                 IP
               </th>
 
-              <th className="pb-1.5 text-left font-medium">
+              <th className="px-3 py-2 text-left">
                 Node
               </th>
 
-              <th className="pb-1.5 text-left font-medium">
+              <th className="px-3 py-2 text-left">
                 Status
               </th>
+
+              <th className="px-3 py-2 text-left">
+                Health
+              </th>
+
+              <th className="px-3 py-2 text-left">
+                Last Seen
+              </th>
+
+              <th className="rounded-r-[9px] px-2 py-2" />
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-white/60">
+          <tbody className="divide-y divide-slate-100">
             {MOCK_ENDPOINTS.map(
               (endpoint) => (
                 <tr
-                  key={
-                    endpoint.ip
-                  }
+                  key={endpoint.ip}
+                  className="text-[9px]"
                 >
-                  <td className="py-1.5 text-slate-500">
+                  <td className="px-4 py-2 text-slate-600">
                     {endpoint.ip}
                   </td>
 
-                  <td className="py-1.5 font-medium text-slate-700">
+                  <td className="px-3 py-2 font-medium text-slate-700">
                     {endpoint.node}
                   </td>
 
-                  <td className="py-1.5">
+                  <td className="px-3 py-2">
                     <span
-                      className={`flex items-center gap-1 text-[10px] font-medium ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[8px] font-medium ${
                         endpoint.status ===
-                        "Affected"
-                          ? "text-orange-500"
-                          : "text-slate-500"
+                        "Critical"
+                          ? "bg-red-50 text-red-500"
+                          : "bg-orange-50 text-orange-500"
                       }`}
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${statusDot(
-                          endpoint.status,
-                        )}`}
-                      />
-
                       {endpoint.status}
                     </span>
+                  </td>
+
+                  <td className="px-3 py-2">
+                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-600">
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          endpoint.health ===
+                          "Down"
+                            ? "bg-red-500"
+                            : endpoint.health ===
+                                "High Latency"
+                              ? "bg-orange-500"
+                              : "bg-green-600"
+                        }`}
+                      />
+
+                      {endpoint.health}
+                    </span>
+                  </td>
+
+                  <td className="whitespace-nowrap px-3 py-2 text-slate-500">
+                    {endpoint.lastSeen}
+                  </td>
+
+                  <td className="px-2 py-2 text-right text-slate-400">
+                    <MoreHorizontal className="ml-auto h-3.5 w-3.5" />
                   </td>
                 </tr>
               ),
@@ -1995,155 +2191,174 @@ function PodDependencies({
     ];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <p className="mb-2 text-xs font-semibold text-slate-700">
-          Pod Dependencies
-        </p>
+    <div>
+      <p className="mb-4 text-[17px] font-semibold tracking-tight text-slate-900">
+        Pod Dependencies
+      </p>
 
-        {deps ? (
-          deps.dependsOn.map(
+      {deps ? (
+        <div className="space-y-3">
+          {deps.dependsOn.map(
             (
               dependency,
               index,
             ) => (
               <div
                 key={index}
-                className="mb-1 flex items-center gap-1.5 rounded-lg border border-white/60 bg-white/35 px-2 py-1.5 text-[10px] backdrop-blur-md"
+                className="flex items-center justify-between gap-2"
               >
-                <span
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${statusBorderBg(
-                    dependency.fromStatus,
-                  )}`}
-                >
-                  <Box
-                    className={`h-2.5 w-2.5 ${statusTextColor(
-                      dependency.fromStatus,
-                    )}`}
-                  />
-                </span>
+                <div className="min-w-0 rounded-[8px] border border-slate-200 bg-white px-2.5 py-2 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${statusBorderBg(
+                        dependency.fromStatus,
+                      )}`}
+                    >
+                      <Box
+                        className={`h-3.5 w-3.5 ${statusTextColor(
+                          dependency.fromStatus,
+                        )}`}
+                      />
+                    </span>
 
-                <span className="font-medium text-slate-600">
-                  {dependency.from}
-                </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[9px] font-semibold text-slate-700">
+                        {dependency.from}
+                      </p>
 
-                <span className="text-slate-300">
+                      <p className="text-[8px] text-slate-400">
+                        Service
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <span className="shrink-0 text-slate-400">
                   →
                 </span>
 
-                <span
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${statusBorderBg(
-                    dependency.toStatus,
-                  )}`}
-                >
-                  <Box
-                    className={`h-2.5 w-2.5 ${statusTextColor(
-                      dependency.toStatus,
-                    )}`}
-                  />
+                <div className="min-w-0 rounded-[8px] border border-slate-200 bg-white px-2.5 py-2 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-blue-200 bg-blue-50">
+                      <Box className="h-3.5 w-3.5 text-blue-600" />
+                    </span>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-[9px] font-semibold text-slate-700">
+                        pymt-pod-9d13
+                      </p>
+
+                      <p className="text-[8px] text-slate-400">
+                        Pod
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <span className="shrink-0 text-slate-400">
+                  →
                 </span>
 
-                <span className="font-medium text-slate-600">
-                  {dependency.to}
-                </span>
+                <div className="min-w-0 rounded-[8px] border border-slate-200 bg-white px-2.5 py-2 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-orange-200 bg-orange-50">
+                      <Box className="h-3.5 w-3.5 text-orange-500" />
+                    </span>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-[9px] font-semibold text-slate-700">
+                        order-svc
+                      </p>
+
+                      <p className="text-[8px] text-slate-400">
+                        Service
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             ),
-          )
-        ) : (
-          <p className="text-[10px] text-slate-400">
-            No dependencies
-            found
-          </p>
-        )}
-      </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-[10px] text-slate-400">
+          No dependencies found
+        </p>
+      )}
 
-      <div>
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-          Used by
+      <div className="mt-5">
+        <p className="mb-2 text-[17px] font-semibold tracking-tight text-slate-900">
+          Used By
         </p>
 
-        {deps?.usedBy.map(
-          (
-            dependency,
-            index,
-          ) => (
-            <div
-              key={index}
-              className="mb-1 flex items-center gap-1.5 rounded-lg border border-white/60 bg-white/35 px-2 py-1.5 text-[10px] backdrop-blur-md"
+        <div className="flex flex-wrap gap-2">
+          {[
+            "payment-app",
+            "order-service",
+            "frontend",
+          ].map((item) => (
+            <span
+              key={item}
+              className="flex items-center gap-1.5 rounded-[7px] bg-[#edf3fc] px-2.5 py-1.5 text-[9px] font-medium text-slate-600"
             >
-              <span className="font-medium text-slate-600">
-                {dependency.from}
-              </span>
-
-              <span className="text-slate-300">
-                →
-              </span>
-
-              <span className="font-medium text-slate-600">
-                {dependency.to}
-              </span>
-            </div>
-          ),
-        )}
+              <Box className="h-3.5 w-3.5 text-blue-600" />
+              {item}
+            </span>
+          ))}
+        </div>
       </div>
+    </div>
+  );
+}
 
-      <div>
-        <p className="mb-2 text-xs font-semibold text-slate-700">
-          Related Services
-        </p>
+function RelatedServicesPanel() {
+  return (
+    <div>
+      <p className="mb-4 text-[17px] font-semibold tracking-tight text-slate-900">
+        Related Services
+      </p>
 
-        {MOCK_RELATED_SERVICES.map(
-          (service) => (
-            <div
-              key={
-                service.name
-              }
-              className="flex items-center gap-2 py-1"
-            >
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
-                  service.status ===
-                  "Critical"
-                    ? "border-red-300 bg-red-50"
-                    : service.status ===
-                        "Affected"
-                      ? "border-orange-300 bg-orange-50"
-                      : "border-slate-200 bg-white"
-                }`}
+      <div className="overflow-hidden rounded-[9px]">
+        <div className="grid grid-cols-[1.2fr_1fr_.9fr_auto] bg-[#e9eefc] px-3 py-2 text-[8px] font-medium text-slate-500">
+          <span>Service</span>
+          <span>Namespace</span>
+          <span>Status</span>
+          <span />
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {MOCK_RELATED_SERVICES.map(
+            (service) => (
+              <div
+                key={service.name}
+                className="grid grid-cols-[1.2fr_1fr_.9fr_auto] items-center px-3 py-2.5"
               >
-                <Box
-                  className={`h-2.5 w-2.5 ${
-                    service.status ===
-                    "Critical"
-                      ? "text-red-500"
-                      : service.status ===
-                          "Affected"
-                        ? "text-orange-500"
-                        : "text-slate-400"
-                  }`}
-                />
-              </span>
+                <span className="truncate text-[9px] font-medium text-slate-700">
+                  {service.name}
+                </span>
 
-              <span className="flex-1 truncate text-xs text-slate-700">
-                {service.name}
-              </span>
+                <span className="truncate text-[9px] text-slate-600">
+                  {service.namespace}
+                </span>
 
-              <span
-                className={`flex shrink-0 items-center gap-1 text-[10px] font-medium ${statusDotColor(
-                  service.status,
-                )}`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${statusDot(
-                    service.status,
-                  )}`}
-                />
+                <span>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-1 text-[7px] font-medium ${
+                      service.status ===
+                      "Critical"
+                        ? "bg-red-50 text-red-500"
+                        : "bg-orange-50 text-orange-500"
+                    }`}
+                  >
+                    {service.status}
+                  </span>
+                </span>
 
-                {service.status}
-              </span>
-            </div>
-          ),
-        )}
+                <MoreHorizontal className="h-3.5 w-3.5 text-slate-400" />
+              </div>
+            ),
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2158,10 +2373,7 @@ function HowToUse() {
 
       <div className="flex items-center justify-between gap-4">
         <p className="max-w-[180px] text-[11px] leading-relaxed text-slate-500">
-          Click on any
-          components to focus
-          and see the related
-          dependency path
+          Click on any components to focus and see the related dependency path
         </p>
 
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-slate-200 text-slate-500">
@@ -2203,7 +2415,7 @@ export default function ClusterMonitor() {
     useState<string | null>(null);
 
   return (
-    <main className="min-h-full overflow-x-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)] px-3 py-4 sm:px-5 sm:py-5 lg:px-7">
+    <main className="min-h-full overflow-x-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)] px-5 py-4 sm:px-6 sm:py-5 lg:px-8 xl:px-10 2xl:px-14">
       <TopBar />
 
       <section className="relative mb-4 pt-1 sm:mb-5">
@@ -2213,10 +2425,7 @@ export default function ClusterMonitor() {
           </h1>
 
           <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Interactive view of
-            your Kubernetes
-            environment and
-            dependencies
+            Interactive view of your Kubernetes environment and dependencies
           </p>
         </div>
       </section>

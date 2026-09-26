@@ -7,7 +7,7 @@ import DatabaseMonitor from "@/components/monitor/DatabaseMonitor";
 export default function Inventory() {
   const { environment } = useEnvironment();
 
-  if (environment === "Database") {
+  if (environment === "Non-Prod") {
     return <DatabaseMonitor />;
   }
 
