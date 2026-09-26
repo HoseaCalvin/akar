@@ -3,22 +3,16 @@
 import { useEffect, useState, useCallback, CSSProperties } from "react";
 import IncidentCard from "@/components/IncidentCard";
 import TopBar from "@/components/TopBar";
-import PageState from "@/components/PageState";
-import { api } from "@/lib/api";
-import { useApi } from "@/lib/use-api";
 import type { IncidentHeader, ResourceKind } from "@/lib/types";
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { endpoint } from "@/lib/endpoint";
-import { AlertCircle, ShieldCheck, TriangleAlert } from "lucide-react";
+import { AlertCircle, ArrowRight, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useEnvironment } from "@/lib/environment-context";
 
 export default function Incidents() {
   const { environment } = useEnvironment();
   const isDb = environment === "Database";
-  
   const [type, setType] = useState<ResourceKind>("pods");
-  const [worker, setWorker] = useState<string>("");
   const [incidentHeader, setIncidentHeader] = useState<IncidentHeader[] | null>(null);
 
   useEffect(() => {
@@ -31,14 +25,21 @@ export default function Incidents() {
     fetchIncidentHeaders();
   }, []);
 
+  const resourceLabels: Record<ResourceKind, string> = {
+    pods: "Pods Incidents",
+    services: "Service Incidents",
+    databases: "Database Incidents",
+    clusters: "Cluster Incidents",
+  };
+
   return (
     <main className="main-container">
       <TopBar />
       <section className="space-y-1 shrink-0">
         <h1 className="font-semibold text-lg">2D Spatial Topology & Incident Queue</h1>
       </section>
-      <section className="flex w-full flex-1 min-h-0 py-5">
-        <section className="w-1/2 spac">
+      <section className="flex w-full flex-1 min-h-0 pt-5 pb-2">
+        <section className="w-1/2">
             {isDb ? <DatabaseTopology /> : <ClusterTopology />}
             {isDb && <DatabaseStatusCard />}
         </section>
@@ -47,28 +48,28 @@ export default function Incidents() {
             <button
               type="button"
               onClick={() => setType("pods")}
-              className={`bg-white py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "pods" ? "ring-2 ring-blue-400" : ""}`}
+              className={`py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "pods" ? "bg-blue-500 text-white" : "bg-white text-black"}`}
             >
               Pods
             </button>
             <button
               type="button"
               onClick={() => setType("services")}
-              className={`bg-white py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "services" ? "ring-2 ring-blue-400" : ""}`}
+              className={`py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "services" ? "bg-blue-500 text-white" : "bg-white text-black"}`}
             >
               Services
             </button>
             <button
               type="button"
               onClick={() => setType("databases")}
-              className={`bg-white py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "databases" ? "ring-2 ring-blue-400" : ""}`}
+              className={`py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "databases" ? "bg-blue-500 text-white" : "bg-white text-black"}`}
             >
               Databases
             </button>
             <button
               type="button"
               onClick={() => setType("clusters")}
-              className={`bg-white py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "clusters" ? "ring-2 ring-blue-400" : ""}`}
+              className={`py-1 px-4 rounded-lg shadow-md cursor-pointer ${type === "clusters" ? "bg-blue-500 text-white" : "bg-white text-black"}`}
             >
               Clusters
             </button>
@@ -77,12 +78,12 @@ export default function Incidents() {
             <div className="flex justify-between py-2 lg:py-3.5">
               <header className="flex items-center gap-x-3">
                 <h1 className="font-bold leading-0 lg:text-lg">
-                  {type === "pods" ? "Pods Incidents" : "Service Incidents"}
+                  {resourceLabels[type]}
                 </h1>
                 <p className="leading-0 text-sm font-semibold">{incidentHeader?.length ?? 0} Active Incidents</p>
               </header>
             </div>
-            <div className="overflow-y-auto h-full space-y-4 lg:max-h-[700px] lg:py-3 lg:space-y-6">
+            <div className={`overflow-y-auto h-full space-y-4 ${isDb ? 'lg:max-h-[450px]' : 'lg:max-h-[700px]'} lg:pt-3 lg:space-y-6`}>
               {incidentHeader?.map((incident) => (
                 <IncidentCard 
                   key={incident.id}
@@ -106,6 +107,30 @@ export default function Incidents() {
           </div>
         </section>
       </section>
+      {isDb && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <HealthCard
+            title="MongoDB Health"
+            metrics={[
+              { label: "CPU Usage",    value: "92%",    pct: 92, color: "red" },
+              { label: "Memory Usage", value: "94%",    pct: 94, color: "red" },
+              { label: "Query Rate",   value: "1.8k/s", pct: 60, color: "orange" },
+              { label: "Avg Latency",  value: "42ms",   pct: 40, color: "red" },
+            ]}
+          />
+          <HealthCard
+            title="PosgreSQL Health"
+            metrics={[
+              { label: "CPU Usage",    value: "38%",   pct: 38, color: "green" },
+              { label: "Memory Usage", value: "51%",   pct: 51, color: "green" },
+              { label: "Query Rate",   value: "620/s", pct: 45, color: "green" },
+              { label: "Avg Latency",  value: "12ms",  pct: 15, color: "green" },
+            ]}
+          />
+          <AIInsightCard />
+          <PerformanceCard />
+        </div>
+      )}
     </main>
   );
 }
@@ -493,6 +518,107 @@ function DatabaseTopology() {
           </div>
           <p className="mt-0.5 text-[11px] text-blue-500">Healthy</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function HealthCard({
+  title, metrics,
+}: {
+  title: string;
+  metrics: { label: string; value: string; pct?: number; color: "red" | "green" | "orange" }[];
+}) {
+  const barCls = { red: "bg-red-500", green: "bg-lime-500", orange: "bg-orange-400" };
+  return (
+    <div className="rounded-[18px] border border-white/80 bg-white/90 p-5 shadow-[0_7px_22px_rgba(66,82,135,0.07)] backdrop-blur-sm">
+      <h3 className="text-[13px] font-bold text-[#17264a]">{title}</h3>
+      <div className="mt-3 space-y-3">
+        {metrics.map((m) => (
+          <div key={m.label}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-400">{m.label}</span>
+              <span className="text-[11px] font-bold text-slate-700">{m.value}</span>
+            </div>
+            {m.pct !== undefined && (
+              <div className="mt-1 h-[3px] rounded-full bg-slate-200">
+                <div className={`h-full rounded-full ${barCls[m.color]}`} style={{ width: `${m.pct}%` }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+function AIInsightCard() {
+  const chain = ["Memory Spike", "Cache Pressure", "Slow Queries"];
+  return (
+    <div className="rounded-[18px] border border-white/80 bg-white/90 p-5 shadow-[0_7px_22px_rgba(66,82,135,0.07)] backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-bold text-[#17264a]">AKAR AI Insight</h3>
+        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[9px] font-bold text-indigo-600">
+          High Confidence 93%
+        </span>
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-600">
+        <span className="font-bold text-red-600">MongoDB-prod is experiencing 2 correlated incidents.</span>{" "}
+        High memory usage is likely contributing to increase query latency.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        {chain.map((c, i) => (
+          <span key={c} className="flex items-center gap-1.5">
+            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold text-red-500">{c}</span>
+            {i < chain.length - 1 && <ArrowRight className="h-3 w-3 text-slate-300" />}
+          </span>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="mt-4 w-full rounded-xl bg-[#17264a] px-4 py-2 text-[11px] font-bold text-white transition hover:bg-[#233761]"
+      >
+        View Investigation →
+      </button>
+    </div>
+  );
+}
+
+
+function PerformanceCard() {
+  const [tab, setTab] = useState("Overview");
+  const rows = [
+    { label: "Queries/sec",  value: "1.8k/s", color: "#ef4444", points: [4, 6, 5, 7, 8, 7, 9, 10] },
+    { label: "Latency (ms)", value: "42ms",   color: "#f97316", points: [3, 4, 4, 5, 4, 6, 5, 6]  },
+    { label: "Connections",  value: "312",    color: "#3b82f6", points: [2, 3, 3, 2, 4, 5, 5, 6]  },
+  ];
+  return (
+    <div className="rounded-[18px] border border-white/80 bg-white/90 p-5 shadow-[0_7px_22px_rgba(66,82,135,0.07)] backdrop-blur-sm">
+      <h3 className="text-[13px] font-bold text-[#17264a]">Database Performance</h3>
+      <div className="mt-3 flex gap-1 rounded-lg bg-slate-100 p-1">
+        {["Overview", "Queries", "Connections", "Resources"].map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`flex-1 rounded-md px-2 py-1 text-[9px] font-semibold transition ${
+              tab === t ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4 space-y-3">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-slate-400">{r.label}</p>
+              <p className="text-[13px] font-bold" style={{ color: r.color }}>{r.value} ↗</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

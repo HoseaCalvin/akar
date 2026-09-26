@@ -10,7 +10,7 @@ import { Clock } from "lucide-react";
 
 import Link from "next/link";
 
-import type { IncidentHeader } from "@/lib/types";
+import type { IncidentHeader, Severity } from "@/lib/types";
 import { getDuration } from "@/utils/helpers";
 
 export default function IncidentCard({ id, code, title, namespace, severity, status, cause, cpu_usage, memory_usage, restart_count, confidence, start_time, end_time }: IncidentHeader) {
@@ -21,12 +21,23 @@ export default function IncidentCard({ id, code, title, namespace, severity, sta
     Low: "bg-warning-low",
   };
 
+  function severityStyle(s: Severity) {
+    if (s.name === "Critical") return { border: "border-red-400",    accent: "bg-red-500",    soft: "bg-red-50",    text: "text-red-600",    badgeBg: "bg-red-500 text-white" };
+    if (s.name === "High")     return { border: "border-orange-400", accent: "bg-orange-400", soft: "bg-orange-50", text: "text-orange-600", badgeBg: "bg-orange-400 text-white" };
+    return                       { border: "border-lime-500",   accent: "bg-lime-500",   soft: "bg-lime-50",   text: "text-lime-600",   badgeBg: "bg-lime-500 text-white" };
+  }
+
+  const style  = severityStyle(severity);
+
   return (
     <Link
       href={`/private/incidents/${id}/timeline`}
       className={`${getBorderColor(severity)} flex flex-col relative overflow-hidden shadow-lg/10 border-2 rounded-2xl w-full cursor-pointer animate hover:shadow-lg/20 lg:p-3`}
     >
-      <div className="absolute top-3 right-6 flex flex-col justify-center lg:space-y-0.5">
+      <div className="absolute top-0 left-0 flex flex-col justify-center h-full lg:space-y-0.5">
+        <div className={`w-2.5 h-full shrink-0 ${style.accent}`} />
+      </div>
+      <div className="absolute top-3 right-6 flex flex-col justify-center h-full lg:space-y-0.5">
         <div className="lg:space-x-1.5">
           <Clock className="text-gray-500 inline w-3.5 h-3.5" />
           <p className="inline text-gray-500 text-xs text-center">
