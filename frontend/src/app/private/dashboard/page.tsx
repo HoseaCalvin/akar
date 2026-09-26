@@ -194,7 +194,7 @@ export default function Dashboard() {
   const incidentTimes = ["2m ago", "2m ago", "3m ago", "5m ago"];
 
   return (
-    <main className="main-container min-h-screen bg-[#f1f5ff]">
+    <main className="main-container min-h-screen bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)]">
       <TopBar />
 
       <section className="shrink-0">
