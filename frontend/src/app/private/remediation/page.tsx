@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
-import EvidenceAlert from "@/components/EvidenceAlert";
 
 import TopBar from "@/components/TopBar";
 import { api } from "@/lib/api";
@@ -85,7 +84,7 @@ export default function RemediationPage() {
       <TopBar />
 
     <section className="mt-6 shrink-0 px-6">
-      <div className="flex min-w-0 items-start gap-50">
+      <div className="flex min-w-0 items-start gap-4">
         <div className="min-w-0 shrink-0">
           <h1 className="text-[26px] font-semibold leading-[31px] tracking-[-0.5px] text-[#111111]">
             Remediation Center
@@ -96,7 +95,6 @@ export default function RemediationPage() {
           </p>
         </div>
 
-        <EvidenceAlert />
       </div>
     </section>
 
@@ -134,8 +132,8 @@ export default function RemediationPage() {
         </div>
       </section>
 
-      <section className="grid items-stretch grid-cols-[475px_minmax(0,1fr)] gap-5 px-6 pb-4 pt-4">
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-[22px] bg-white px-5 py-4 max-h-[725px]">
+      <section className="grid items-stretch grid-cols-1 xl:grid-cols-[minmax(380px,0.45fr)_minmax(0,1fr)] gap-5 px-6 pb-4 pt-4">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-[22px] bg-white px-5 py-4 max-h-[calc(100vh-220px)]">
           <div className="flex shrink-0 items-center gap-3">
             <h2 className="text-[27px] font-semibold tracking-[-0.7px]">
               Proposed Remediation

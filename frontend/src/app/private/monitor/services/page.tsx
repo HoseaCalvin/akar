@@ -24,7 +24,7 @@ export default function Services() {
   );
 
   return (
-    <main className="relative flex flex-col min-h-full py-5 px-7">
+    <main className="relative flex flex-col min-h-full py-5 px-6 lg:px-8 xl:px-10 2xl:px-14">
       <TopBar />
       <section className="flex items-center lg:gap-x-2 lg:pb-10">
         <ChevronLeft

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-export type EnvironmentType = "Cluster" | "Database";
+export type EnvironmentType = "Production" | "Non-Prod";
 
 type EnvironmentContextValue = {
   environment: EnvironmentType;
@@ -10,12 +10,12 @@ type EnvironmentContextValue = {
 };
 
 const EnvironmentContext = createContext<EnvironmentContextValue>({
-  environment: "Cluster",
+  environment: "Production",
   setEnvironment: () => {},
 });
 
 export function EnvironmentProvider({ children }: { children: ReactNode }) {
-  const [environment, setEnvironment] = useState<EnvironmentType>("Cluster");
+  const [environment, setEnvironment] = useState<EnvironmentType>("Production");
 
   return (
     <EnvironmentContext.Provider value={{ environment, setEnvironment }}>

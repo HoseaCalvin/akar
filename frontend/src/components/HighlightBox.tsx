@@ -10,24 +10,17 @@ type HighlightBoxProps = {
 };
 
 const valueClass: Record<HighlightTone, string> = {
-  neutral: "text-slate-900",
-  ok: "text-emerald-600",
-  warning: "text-amber-600",
-  critical: "text-red-600",
+  neutral: "text-black",
+  ok: "text-warning-low",
+  warning: "text-black",
+  critical: "text-warning-critical",
 };
 
 const descriptionClass: Record<HighlightTone, string> = {
-  neutral: "text-slate-500",
-  ok: "text-emerald-500",
-  warning: "text-amber-500",
-  critical: "text-red-500",
-};
-
-const borderClass: Record<HighlightTone, string> = {
-  neutral: "border-slate-200",
-  ok: "border-emerald-200",
-  warning: "border-amber-200",
-  critical: "border-red-200",
+  neutral: "text-gray-400",
+  ok: "text-warning-low",
+  warning: "text-warning-high",
+  critical: "text-warning-critical",
 };
 
 export default function HighlightBox({
@@ -37,15 +30,15 @@ export default function HighlightBox({
   tone = "neutral",
 }: HighlightBoxProps) {
   return (
-    <div className={`bg-white rounded-xl border ${borderClass[tone]} shadow-sm lg:py-4 lg:px-4 w-full max-w-xs transition-shadow hover:shadow-md`}>
-      <header className="font-medium text-slate-400 text-xs uppercase tracking-wide">
-        {title}
+    <div className="bg-white rounded-2xl shadow-md/10 lg:py-4 lg:px-4 w-full max-w-xs">
+      <header className="font-bold text-[#94A3B8] text-xs">
+        {title.toUpperCase()}
       </header>
-      <div className="flex items-end pt-1 lg:pt-1.5 lg:gap-x-2">
-        <h1 className={`${valueClass[tone]} text-base font-bold text-center leading-none lg:text-2xl`}>
+      <div className="flex items-end lg:gap-x-2">
+        <h1 className={`${valueClass[tone]} text-base font-bold lg:text-2xl`}>
           {value}
         </h1>
-        <p className={`${descriptionClass[tone]} text-xs font-medium`}>
+        <p className={`${descriptionClass[tone]} font-bold text-xs`}>
           {description}
         </p>
       </div>

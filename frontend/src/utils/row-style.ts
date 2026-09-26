@@ -1,7 +1,7 @@
-import { Severity } from "@/lib/types";
+export type Level = 'Critical' | 'High' | 'Medium' | 'Low';
 
-export function getBorderColor(level: Severity) {
-  switch (level.name) {
+export function getBorderColor(level: Level) {
+  switch (level) {
     case 'Critical':
       return 'border-warning-critical';
     case 'High':
@@ -15,8 +15,8 @@ export function getBorderColor(level: Severity) {
   }
 }
 
-export function getRowBackgroundColor(level: Severity) {
-  switch (level.name) {
+export function getRowBackgroundColor(level: Level) {
+  switch (level) {
     case 'Critical':
       return 'bg-red-50 border-red-100';
     case 'High':
@@ -30,8 +30,8 @@ export function getRowBackgroundColor(level: Severity) {
   }
 };
 
-export function getDescriptionColor(level: Severity) {
-  switch (level.name) {
+export function getDescriptionColor(level: Level) {
+  switch (level) {
     case 'Critical':
       return 'text-red-500';
     case 'High':
@@ -45,8 +45,8 @@ export function getDescriptionColor(level: Severity) {
   }  
 }
 
-export function getBadgeColor(level: Severity) {
-  switch (level.name) {
+export function getBadgeColor(level: Level) {
+  switch (level) {
     case 'Critical':
       return 'bg-red-100';
     case 'High':
@@ -60,8 +60,8 @@ export function getBadgeColor(level: Severity) {
   }  
 }
 
-export function getBadgeTextColor(level: Severity) {
-  switch (level.name) {
+export function getBadgeTextColor(status: Level) {
+  switch (status) {
     case 'Critical':
       return 'text-warning-critical';
     case 'High':

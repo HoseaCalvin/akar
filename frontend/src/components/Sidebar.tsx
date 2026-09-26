@@ -11,8 +11,8 @@ import { useState } from "react";
 import { useEnvironment, type EnvironmentType } from "@/lib/environment-context";
 
 const ENV_OPTIONS: { label: EnvironmentType; icon: React.ReactNode }[] = [
-    { label: "Cluster", icon: <Server className="w-3.5 h-3.5" /> },
-    { label: "Database", icon: <Database className="w-3.5 h-3.5" /> },
+    { label: "Production", icon: <Server className="w-3.5 h-3.5" /> },
+    { label: "Non-Prod",   icon: <Database className="w-3.5 h-3.5" /> },
 ];
 
 export default function Sidebar() {
@@ -33,7 +33,7 @@ export default function Sidebar() {
     }
 
     return (
-        <nav className="sticky top-0 flex flex-col justify-between items-center min-h-full w-full px-4.5 py-2 overflow-y-auto max-w-[170px] lg:gap-y-5 xl:max-w-[180px]">
+        <nav className="sticky top-0 flex flex-col justify-between items-center min-h-full w-full px-4.5 py-2 overflow-y-auto max-w-[170px] lg:gap-y-5 xl:max-w-[190px] 2xl:max-w-[210px]">
             <figure className="mt-3">
                 <Image
                     src={AkarLogo}
@@ -104,7 +104,6 @@ export default function Sidebar() {
                 </Link>
             </div>
 
-            {/* Environment selector */}
             <div className="relative w-full">
                 <section className="border border-white rounded-xl px-3 py-2 w-full space-y-1">
                     <p className="text-xs text-slate-500">Environment</p>

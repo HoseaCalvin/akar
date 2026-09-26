@@ -1,117 +1,74 @@
 "use client";
 
-import ClusterDisc from "@/assets/cluster-cube.svg";
-
-import { useState, useEffect } from "react";
-
-import { Workflow, Server, Container, Database } from "lucide-react";
-
+import type { ReactNode, CSSProperties } from "react";
+import {
+  Workflow,
+  Server,
+  Container,
+  Database,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import type { EChartsOption } from "echarts";
-
-import Image from "next/image";
 import Link from "next/link";
-
+import Image from "next/image";
 import TopBar from "@/components/TopBar";
 import EChart from "@/components/EChart";
 import PageState from "@/components/PageState";
-import DashboardOverview from "@/components/DashboardOverview";
-
-import { getMilitaryTime } from "@/utils/helpers";
-
 import { api } from "@/lib/api";
 import { useApi } from "@/lib/use-api";
-import { endpoint } from "@/lib/endpoint";
+import type { Severity } from "@/lib/types";
 
-import { ClusterSubsystems, Metrics, type Cluster, type Infrastructure, type Severity } from "@/lib/types";
+type CubeColour = "blue" | "purple" | "green" | "orange" | "red";
 
-const severityDot: any = {
+const severityDot: Record<Severity, string> = {
   Critical: "bg-warning-critical",
   High: "bg-warning-high",
   Medium: "bg-warning-medium",
   Low: "bg-warning-low",
 };
 
+const clusterData = [
+  {
+    name: "Cluster 1",
+    status: "Healthy",
+    statusClass: "bg-blue-50 text-slate-800",
+    dotClass: "bg-blue-600",
+    colour: "blue" as CubeColour,
+    accent: "blue" as CubeColour,
+    pods: 24,
+    containers: 12,
+    services: 6,
+  },
+  {
+    name: "Cluster 2",
+    status: "Warning",
+    statusClass: "bg-yellow-50 text-slate-800",
+    dotClass: "bg-yellow-400",
+    colour: "blue" as CubeColour,
+    accent: "orange" as CubeColour,
+    pods: 30,
+    containers: 60,
+    services: 6,
+  },
+  {
+    name: "Cluster 3",
+    status: "Critical",
+    statusClass: "bg-red-50 text-slate-800",
+    dotClass: "bg-red-600",
+    colour: "blue" as CubeColour,
+    accent: "red" as CubeColour,
+    pods: 24,
+    containers: 12,
+    services: 6,
+  },
+];
+
 export default function Dashboard() {
-  const [cluster, setCluster] = useState<Cluster[] | null>(null);
-  const [clusterSubsystems, setClusterSubsystems] = useState<ClusterSubsystems | null>(null);
-  const [infrastructure, setInfrastructure] = useState<Infrastructure | null>(null);
-  const [metrics, setMetrics] = useState<Metrics[] | null>(null);
-  const [averageMetrics, setAverageMetrics] = useState<Metrics | null>(null);
-  const { data, loading, error } = useApi("dashboard", () => api.dashboard.get());
+  const { data, loading, error } = useApi("dashboard", () =>
+    api.dashboard.get(),
+  );
 
-  useEffect(() => {
-    const fetchInfrastructure = async () => {
-      try {
-        const infrastructureData = await endpoint.get<Infrastructure>(`/api/infrastructure/get/6477801f-7386-4758-aad2-cc3c53c69605`);
-
-        setInfrastructure(infrastructureData.data);
-      } catch (error) {
-        setInfrastructure(null);
-      }
-    }
-
-    const fetchAllClusterSubsystems = async () => {
-      try {
-        const allSubsystemsData = await endpoint.get<ClusterSubsystems>(`/api/cluster/all/get/31739a8c-22b9-455f-8952-1e0f85fe8dd1`);
-        
-        setClusterSubsystems(allSubsystemsData.data);
-      } catch (error) {
-        setClusterSubsystems(null);
-      }
-    }
-
-    fetchInfrastructure();
-    fetchAllClusterSubsystems();
-  }, []);
-
-  useEffect(() => {
-    const fetchCluster = async () => {
-      if(!infrastructure) {
-        return;
-      }
-
-      try {
-        const clusterData = await endpoint.get<Cluster[]>(`/api/cluster/get/31739a8c-22b9-455f-8952-1e0f85fe8dd1`);
-
-        setCluster(clusterData.data);
-      } catch (error) {
-        setCluster(null);
-      }
-    }
-
-    const fetchMetrics = async () => {
-      if(!infrastructure) {
-        return;
-      }
-
-      try {
-        const metricsData = await endpoint.get<Metrics[]>(`/api/metrics/get/31739a8c-22b9-455f-8952-1e0f85fe8dd1`);
-
-        setMetrics(metricsData.data);
-      } catch (error) {
-        setMetrics(null);
-      }
-    }
-
-    const fetchAverageMetrics = async () => {
-      if(!infrastructure) {
-        return;
-      }
-
-      try {
-        const averageMetrics = await endpoint.get<{ _avg: Metrics }>(`/api/metrics/avg/get/31739a8c-22b9-455f-8952-1e0f85fe8dd1`);
-
-        setAverageMetrics(averageMetrics.data._avg);
-      } catch (error) {
-        setAverageMetrics(null);
-      }
-    }
-
-    fetchCluster();
-    fetchMetrics();
-    fetchAverageMetrics();
-  }, [infrastructure]);
-  
   if (!data) {
     return (
       <main className="main-container">
@@ -122,258 +79,693 @@ export default function Dashboard() {
   }
 
   const infrastructureHealthData: EChartsOption = {
-    tooltip: { trigger: "item", formatter: "{b}: {d}%" },
+    animation: true,
+    tooltip: {
+      show: false,
+    },
     series: [
       {
-        name: "Pod Status",
-        type: "pie",
-        radius: ["50%", "70%"],
+        type: "gauge",
+        startAngle: 90,
+        endAngle: -270,
+        radius: "82%",
+        center: ["50%", "52%"],
+        min: 0,
+        max: 100,
+        splitNumber: 1,
+        pointer: {
+          show: false,
+        },
+        progress: {
+          show: true,
+          roundCap: true,
+          width: 26,
+        },
+        axisLine: {
+          lineStyle: {
+            width: 26,
+            color: [[1, "#d5d5d5"]],
+          },
+        },
+        axisTick: {
+          show: false,
+        },
+        splitLine: {
+          show: false,
+        },
+        axisLabel: {
+          show: false,
+        },
+        detail: {
+          show: false,
+        },
         data: [
-          { value: 100 - (infrastructure?.health || 0), itemStyle: { color: "transparent" } },
-          { value: infrastructure?.health || 0 },
+          {
+            value: Number(data.health.healthyPercent),
+          },
         ],
+        itemStyle: {
+          color: "#4fba00",
+        },
       },
     ],
   };
 
   const performanceData: EChartsOption = {
-    tooltip: { trigger: "axis" },
-    grid: { left: 45, right: 20, top: 30, bottom: 50 },
+    animation: true,
+    tooltip: {
+      trigger: "axis",
+    },
+    grid: {
+      left: 0,
+      right: 0,
+      top: 10,
+      bottom: 0,
+      containLabel: false,
+    },
     xAxis: {
       type: "category",
-      data: metrics?.map((metric) => getMilitaryTime(metric.time)),
+      show: false,
+      boundaryGap: false,
+      data: data.performance.series.map((point) => point.time),
     },
     yAxis: {
       type: "value",
+      show: false,
+      min: 0,
       max: 100,
-      axisLabel: { formatter: "{value}" },
     },
     series: [
       {
-        name: "MTTD",
+        name: "CPU",
         type: "line",
         smooth: true,
-        data: metrics?.map((metric) => metric.mttd),
-      },
-      {
-        name: "MTTR",
-        type: "line",
-        smooth: true,
-        data: metrics?.map((metric) => metric.mttr),
-      },
-      {
-        name: "RCA Time",
-        type: "line",
-        smooth: true,
-        data: metrics?.map((metric) => metric.rca_time),
+        showSymbol: false,
+        data: data.performance.series.map((point) => point.cpu),
+        lineStyle: {
+          width: 2,
+          color: "#3158ff",
+        },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: "rgba(49,88,255,0.48)",
+              },
+              {
+                offset: 1,
+                color: "rgba(49,88,255,0.04)",
+              },
+            ],
+          },
+        },
       },
     ],
   };
 
   const firstIncidentId = data.recentIncidents[0]?.id;
 
+  const incidentTimes = ["2m ago", "2m ago", "3m ago", "5m ago"];
+
   return (
-    <main className="main-container">
+    <main className="main-container min-h-screen bg-[#f1f5ff]">
       <TopBar />
-      <section className="space-y-1 shrink-0">
-        <h1 className="font-semibold text-lg">Good Morning, {data.greetingName}</h1>
-        <p>Here&apos;s what is happening with your infrastructure.</p>
+
+      <section className="shrink-0">
+        <h1 className="text-[25px] font-semibold leading-tight text-slate-950">
+          Good Morning, {data.greetingName}
+        </h1>
+
+        <p className="mt-2 text-[16px] text-slate-800">
+          Here&apos;s what is happening with your infrastructure
+        </p>
       </section>
-      <section className="grid grid-cols-[repeat(4,1fr)] grid-rows-[repeat(8,100px)] min-h-full flex-1 gap-3 mt-5">
-        <aside className="row-start-1 row-span-1 col-start-1 col-span-4 rounded-xl p-3 h-full">
-          <div className="flex justify-around items-center w-full h-full xl:px-4.5">
-            <DashboardOverview 
-              icon={
-                <Workflow 
-                  className="bg-blue-100 w-auto h-12 rounded-lg p-1.5" 
-                  fill="#0045FF" 
-                  stroke="#FFF" 
-                  strokeWidth={1.5} 
-                />
-              } 
-              value={clusterSubsystems?.node_count || 0} 
-              label="Nodes" 
+
+      <section className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat
+          icon={
+            <Workflow
+              className="h-[40px] w-[40px] rounded-[10px] bg-blue-100 p-2 text-blue-600"
+              strokeWidth={2}
             />
-            <DashboardOverview 
-              icon={
-                <Server 
-                  className="bg-green-100 w-auto h-12 rounded-lg p-1.5" 
-                  fill="#12B200" 
-                  strokeWidth={1.5} 
-                  stroke="#FFF" 
-                />
-              } 
-              value={clusterSubsystems?.pod_count || 0} 
-              label="Pods" 
+          }
+          value={data.counts.nodes}
+          label="Nodes"
+          sublabel="Total Nodes"
+        />
+
+        <Stat
+          icon={
+            <Server
+              className="h-[40px] w-[40px] rounded-[10px] bg-green-100 p-2 text-green-600"
+              fill="currentColor"
+              strokeWidth={0}
             />
-            <DashboardOverview 
-              icon={
-                <Container 
-                  className="bg-purple-100 w-auto h-12 rounded-lg p-1.5" 
-                  fill="#6C00B4" 
-                  strokeWidth={1.5} 
-                  stroke="#FFF" 
-                />
-              } 
-              value={clusterSubsystems?.container_count || 0} 
-              label="Containers" 
+          }
+          value={data.counts.pods}
+          label="Pods"
+          sublabel="Total Pods"
+        />
+
+        <Stat
+          icon={
+            <Container
+              className="h-[40px] w-[40px] rounded-[10px] bg-purple-100 p-2 text-purple-700"
+              fill="currentColor"
+              strokeWidth={0}
             />
-            <DashboardOverview 
-              icon={
-                <Database 
-                  className="bg-yellow-100 w-auto h-12 rounded-lg p-1.5" 
-                  fill="#FFC72D" 
-                  strokeWidth={1.5} 
-                  stroke="#FFF" 
-                />
-              } 
-              value={clusterSubsystems?.service_count || 0}
-              label="Services" 
+          }
+          value={data.counts.deployments}
+          label="Containers"
+          sublabel="Total Containers"
+        />
+
+        <Stat
+          icon={
+            <Database
+              className="h-[40px] w-[40px] rounded-[10px] bg-yellow-50 p-2 text-yellow-500"
+              fill="currentColor"
+              strokeWidth={0}
             />
+          }
+          value={data.counts.services}
+          label="Services"
+          sublabel="Total Services"
+        />
+      </section>
+
+      <section className="mt-5 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,3fr)_minmax(300px,400px)]">
+        <section className="glass-effect-2 rounded-[18px] px-7 py-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[20px] font-semibold text-slate-950">
+              Infrastructure Nodes
+            </h2>
+
+            <Link
+              href="/private/monitor"
+              className="flex items-center gap-1 text-[17px] font-medium text-blue-600 hover:underline"
+            >
+              Show all
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-        </aside>
-        <aside className="row-start-2 row-span-4 col-start-1 col-span-3 glass-effect-2 rounded-xl p-3 h-full">
-          <h1 className="font-semibold lg:text-base">Infrastructure Nodes</h1>
-          <article className="flex justify-around items-center w-full h-full overflow-x-auto xl:px-4.5">
-            { cluster && cluster.length > 0 ? (
-              cluster.map((clusterItem, index) => (
-                <div key={index}>
-                  <figure>
-                    <h1 className="w-full text-center font-semibold p-1 lg:text-xl">Cluster {index + 1}</h1>
-                    <Image
-                      src={ClusterDisc}
-                      className="h-[5rem] w-auto lg:h-[13rem] xl:h-[16rem]"
-                      alt="Cluster"
-                      width={80}
-                      height={80}
-                    />
-                  </figure>
-                  <figure className="flex items-center justify-around w-full p-2 lg:p-3.5">
-                    <div>
-                      <div className="flex items-center gap-x-1 lg:gap-x-2">
-                        <Server 
-                          className="w-auto h-8 rounded-lg" 
-                          fill="#12B200" 
-                          stroke="transparent" 
-                          strokeWidth={1} 
-                        />
-                        <h2 className="font-semibold">{clusterItem.pod_count}</h2>
-                      </div>
-                      <h3 className="p-0.5 text-sm lg:p-1">Pods</h3>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-x-1 lg:gap-x-2">
-                        <Container 
-                          className="w-auto h-8 rounded-lg" 
-                          fill="#6C00B4" 
-                          stroke="transparent" 
-                          strokeWidth={1} 
-                        />         
-                        <h2 className="font-semibold">{clusterItem.container_count}</h2>         
-                      </div>
-                      <h3 className="p-0.5 text-sm lg:p-1">Containers</h3>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-x-1 lg:gap-x-2">
-                        <Database 
-                          className="w-auto h-8 rounded-lg" 
-                          fill="#FFC72D" 
-                          stroke="transparent" 
-                          strokeWidth={1} 
-                        />
-                        <h2 className="font-semibold">{clusterItem.service_count}</h2>
-                      </div>
-                      <h3 className="p-0.5 text-sm lg:p-1">Services</h3>
-                    </div>
-                  </figure>
-                </div>
-              ))
-            ) : (
-              <div className="flex justify-center items-center w-full h-full">
-                <p className="text-gray-500">No cluster data available.</p>
-              </div>
-            )}
-          </article>
-        </aside>
-        <aside className="row-start-2 row-span-4 col-start-4 col-span-1 glass-effect-2 rounded-xl p-3">
-          <h1 className="font-semibold lg:text-base">Recent Incidents</h1>
-          <div className="lg:space-y-2.5 lg:pt-3">
-            {data.recentIncidents.map((incident) => (
+
+          <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-3 md:divide-x md:divide-slate-200">
+            {clusterData.map((cluster) => (
+              <ClusterCard key={cluster.name} cluster={cluster} />
+            ))}
+          </div>
+        </section>
+
+        <section className="glass-effect-2 ml-auto w-full max-w-[400px] rounded-[18px] px-6 py-6">
+          <h2 className="text-[16px] font-semibold text-slate-950">
+            Recent Incidents
+          </h2>
+
+          <div className="mt-4 space-y-4">
+            {data.recentIncidents.slice(0, 4).map((incident, index) => (
               <Link
                 key={incident.id}
                 href={`/private/incidents/${incident.id}`}
-                className="flex flex-wrap items-center lg:gap-x-3.5"
+                className="group block"
               >
-                <figure className={`w-3 h-3 ${severityDot[incident.severity.name]} rounded-full`} />
-                <div>
-                  <h2 className="font-semibold">{incident.title}</h2>
-                  <h3 className="text-sm">{incident.service}</h3>
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${severityDot[incident.severity]}`}
+                  />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-[14px] font-semibold leading-tight text-slate-900 group-hover:text-blue-600">
+                        {incident.title}
+                      </h3>
+
+                      <span className="shrink-0 text-[11px] text-slate-500">
+                        {incidentTimes[index]}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-[13px] text-slate-800">
+                      {incident.service}
+                    </p>
+                  </div>
                 </div>
               </Link>
             ))}
+
             <Link
               href="/private/incidents"
-              className="text-sm text-blue-500 cursor-pointer hover:underline"
+              className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-blue-600 hover:underline"
             >
-              View All Incidents
+              View All Service Incidents
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-        </aside>
-        <aside className="row-start-6 row-span-3 col-start-1 col-span-2 glass-effect-2 rounded-xl p-3">
-          <h1 className="font-semibold lg:text-base">Infrastructure Health</h1>
-          <div className="flex justify-center items-center w-full h-full gap-x-4 lg:gap-x-6">
-            <div className="w-1/2 h-full">
+        </section>
+      </section>
+
+      <section className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(260px,360px)_minmax(260px,360px)]">
+        <section className="glass-effect-2 rounded-[18px] px-8 py-6">
+          <h2 className="text-[16px] font-semibold text-slate-950">
+            Infrastructure Health
+          </h2>
+
+          <div className="mt-2 flex min-h-[175px] items-center justify-center gap-5">
+            <div className="relative h-[145px] w-[145px] shrink-0">
               <EChart option={infrastructureHealthData} />
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[13px] font-semibold text-slate-900">
+                  {data.health.healthyPercent}%
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col justify-center w-1/5 h-full lg:space-y-3">
-              <h2 className="text-center font-semibold lg:text-4xl">{infrastructure?.health || 0}%</h2>
-              <h3 className="text-center font-semibold text-green-600 lg:text-2xl">Healthy</h3>
-            </div>
-          </div>
-        </aside>
-        <aside className="row-start-6 row-span-3 col-start-3 col-span-1 glass-effect-2 rounded-xl p-3">
-          <h1 className="font-semibold lg:text-base">Performance Metrics</h1>
-          <div className="flex justify-center items-center h-1/3 lg:gap-x-5 xl:px-4">
-            <div className="*:text-center">
-              <h2>
-                <strong className="text-xl">{averageMetrics?.mttd || 0}</strong> min
-              </h2>
-              <h3 className="text-xs">MTTD</h3>
-            </div>
-            <div className="*:text-center">
-              <h2>
-                <strong className="text-xl">{averageMetrics?.mttr || 0}</strong> min
-              </h2>
-              <h3 className="text-xs">MTTR</h3>
-            </div>
-            <div className="*:text-center">
-              <h2>
-                <strong className="text-xl">{averageMetrics?.rca_time || 0}</strong> min
-              </h2>
-              <h3 className="text-xs">RCA Time</h3>
+
+            <div className="flex flex-col items-start">
+              <p className="text-[31px] font-semibold leading-none text-slate-950">
+                {data.health.healthyPercent}%
+              </p>
+
+              <div className="mt-3 flex items-center gap-1.5 text-[17px] font-semibold text-green-600">
+                <CheckCircle2 className="h-[18px] w-[18px] fill-green-600 text-white" />
+                {data.health.label}
+              </div>
             </div>
           </div>
-          <div className="h-2/3">
+        </section>
+
+        <section className="glass-effect-2 rounded-[18px] px-7 py-6">
+          <h2 className="text-[16px] font-semibold text-slate-950">
+            Performance Metrics
+          </h2>
+
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            <Metric value={data.performance.mttdMinutes} label="MTTD" />
+
+            <Metric value={data.performance.mttrMinutes} label="MTTR" />
+
+            <Metric value={data.performance.rcaMinutes} label="RCA Time" />
+          </div>
+
+          <div className="mt-3.5 h-[80px]">
             <EChart option={performanceData} />
           </div>
-        </aside>
-        <aside className="row-start-6 row-span-3 col-start-4 col-span-1 glass-effect-2 rounded-xl flex flex-col h-full lg:p-3 lg:pb-7">
-          <h1 className="font-semibold text-base">Active Investigations</h1>
-          <div className="flex justify-center items-center h-screen xl:px-5 xl:mt-3 xl:gap-x-2">
+        </section>
+
+        <section className="relative overflow-hidden rounded-[18px] bg-gradient-to-br from-white via-white to-[#fff8d9] px-8 py-6">
+          <h2 className="text-[16px] font-semibold text-slate-950">
+            Active Investigations
+          </h2>
+
+          <div className="mt-3.5 flex items-center justify-between">
             <div>
-              <h1 className="text-center font-bold leading-none xl:text-6xl">{data.activeInvestigations}</h1>
-              <h2 className="text-center lg:leading-12 lg:text-3xl">Active</h2>
+              <p className="text-[38px] font-bold leading-none text-slate-950">
+                {data.activeInvestigations}
+              </p>
+
+              <p className="mt-2.5 text-[14px] font-medium text-slate-900">
+                Active
+              </p>
             </div>
+
+            <Image
+              src="/icon-invest.svg"
+              alt="Investigation"
+              width={74}
+              height={74}
+              className="h-[74px] w-[74px] object-contain"
+            />
           </div>
+
           <Link
-            href={firstIncidentId ? `/private/incidents/${firstIncidentId}/investigation` : "/private/incidents"}
-            aria-label="Investigate"
-            className="bg-blue-950 block mx-auto text-white cursor-pointer w-[85%] text-center animate hover:bg-blue-900 lg:py-1 lg:px-6 lg:mt-1 lg:rounded-xl"
+            href={
+              firstIncidentId
+                ? `/private/incidents/${firstIncidentId}/investigation`
+                : "/private/incidents"
+            }
+            className="mt-4 flex h-9 w-full items-center justify-center rounded-full bg-[#05064b] text-[13px] font-medium text-white shadow-lg transition hover:bg-blue-950"
           >
-            Go Investigate
+            Go Investigate!
           </Link>
-        </aside>
+        </section>
       </section>
     </main>
+  );
+}
+
+function Stat({
+  icon,
+  value,
+  label,
+  sublabel,
+}: {
+  icon: ReactNode;
+  value: number;
+  label: string;
+  sublabel: string;
+}) {
+  return (
+    <section className="flex min-h-[68px] items-center gap-3 rounded-[14px] bg-white/80 px-4 py-2.5 shadow-[0_8px_30px_rgba(95,112,160,0.06)] backdrop-blur-sm">
+      {icon}
+
+      <div>
+        <p className="text-[22px] font-bold leading-none text-slate-950">
+          {value}
+        </p>
+
+        <p className="mt-1 text-[13px] font-medium leading-none text-slate-900">
+          {label}
+        </p>
+
+        <p className="mt-1 text-[9px] text-slate-500">{sublabel}</p>
+      </div>
+    </section>
+  );
+}
+
+function Metric({ value, label }: { value: number; label: string }) {
+  return (
+    <div>
+      <p className="text-[22px] font-semibold leading-none text-slate-950">
+        {value}
+        <span className="ml-1 text-[10px] font-medium">min</span>
+      </p>
+
+      <p className="mt-2 text-[10px] text-slate-700">{label}</p>
+    </div>
+  );
+}
+
+function ClusterCard({
+  cluster,
+}: {
+  cluster: {
+    name: string;
+    status: string;
+    statusClass: string;
+    dotClass: string;
+    colour: CubeColour;
+    accent: CubeColour;
+    pods: number;
+    containers: number;
+    services: number;
+  };
+}) {
+  return (
+    <div className="flex min-w-0 flex-col items-center">
+      <div
+        className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-medium shadow-sm ${cluster.statusClass}`}
+      >
+        <span className={`h-3.5 w-3.5 rounded-full ${cluster.dotClass}`} />
+        {cluster.status}
+      </div>
+
+      <h3 className="mt-3 text-[18px] font-medium text-slate-900">
+        {cluster.name}
+      </h3>
+
+      <div className="relative mt-1 h-[220px] w-full overflow-visible">
+        <div className="absolute left-1/2 top-[48px] -translate-x-1/2">
+          <Cube4 colour={cluster.colour} accentColour={cluster.accent} size={44} />
+        </div>
+      </div>
+
+      <div className="mt-1 grid w-full max-w-[220px] grid-cols-3 gap-1">
+        <ClusterStat type="pod" value={cluster.pods} label="Pods" />
+        <ClusterStat
+          type="container"
+          value={cluster.containers}
+          label="Containers"
+        />
+        <ClusterStat type="service" value={cluster.services} label="Services" />
+      </div>
+    </div>
+  );
+}
+
+function ClusterStat({
+  type,
+  value,
+  label,
+}: {
+  type: "pod" | "container" | "service";
+  value: number;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        {type === "pod" && (
+          <Server
+            className="h-3 w-3 text-green-600"
+            fill="currentColor"
+            strokeWidth={0}
+          />
+        )}
+
+        {type === "container" && (
+          <Container
+            className="h-3 w-3 text-purple-700"
+            fill="currentColor"
+            strokeWidth={0}
+          />
+        )}
+
+        {type === "service" && (
+          <Database
+            className="h-3 w-3 text-yellow-500"
+            fill="currentColor"
+            strokeWidth={0}
+          />
+        )}
+
+        <span className="text-[12px] font-semibold text-slate-900">
+          {value}
+        </span>
+      </div>
+
+      <span className="mt-1 text-[10px] text-slate-600">{label}</span>
+    </div>
+  );
+}
+
+// ── 3D Cube components (copied from incidents page) ──────────────────────────
+
+const CUBE_FACES: Record<
+  string,
+  { top: string; front: string; right: string }
+> = {
+  blue: {
+    top: "#cfe0ff,#9fb8f5",
+    front: "#5c7de0,#3a56c4",
+    right: "#3a56c4,#22348f",
+  },
+  red: {
+    top: "#ffc2bf,#f28b86",
+    front: "#e2534d,#c23430",
+    right: "#b93330,#8a1f1d",
+  },
+  orange: {
+    top: "#fff3c4,#ffd27a",
+    front: "#ffb347,#ff8a1e",
+    right: "#ff9d33,#e6720f",
+  },
+  green: {
+    top: "#ddf7c4,#b3ea7c",
+    front: "#8cd94a,#63b829",
+    right: "#4f9c1e,#3a7415",
+  },
+  purple: {
+    top: "#e6d9ff,#c6a8fb",
+    front: "#a072e6,#7d49cf",
+    right: "#7140b8,#54308f",
+  },
+};
+
+const CUBE_GLOW_RGB: Record<string, string> = {
+  blue: "150,170,255",
+  red: "255,120,110",
+  orange: "255,175,60",
+  green: "140,230,110",
+  purple: "190,140,255",
+};
+
+function CubeUnit({
+  colour = "blue",
+  size = 80,
+  top = 0,
+  left = 0,
+  z = 2,
+  glow = false,
+}: {
+  colour?: CubeColour;
+  size?: number;
+  top?: number;
+  left?: number;
+  z?: number;
+  glow?: boolean;
+}) {
+  const c = CUBE_FACES[colour] ?? CUBE_FACES.blue;
+  const half = size / 2;
+  const glowShadow = glow
+    ? `0 0 ${size * 0.35}px ${size * 0.09}px rgba(${CUBE_GLOW_RGB[colour] ?? CUBE_GLOW_RGB.blue},.55)`
+    : "none";
+
+  const face: CSSProperties = {
+    position: "absolute",
+    width: size,
+    height: size,
+    boxShadow: glowShadow,
+  };
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top,
+        left,
+        width: size,
+        height: size,
+        transformStyle: "preserve-3d",
+        transform: "rotateX(-30deg) rotateY(-45deg)",
+        zIndex: z,
+      }}
+    >
+      <div
+        style={{
+          ...face,
+          transform: `rotateX(90deg) translateZ(${half}px)`,
+          background: `linear-gradient(135deg, ${c.top})`,
+          borderRadius: size * 0.04,
+        }}
+      />
+      <div
+        style={{
+          ...face,
+          transform: `translateZ(${half}px)`,
+          background: `linear-gradient(180deg, ${c.front})`,
+        }}
+      />
+      <div
+        style={{
+          ...face,
+          transform: `rotateY(90deg) translateZ(${half}px)`,
+          background: `linear-gradient(180deg, ${c.right})`,
+        }}
+      />
+    </div>
+  );
+}
+
+function Platform({
+  w,
+  h,
+  top,
+  left,
+}: {
+  w: number;
+  h: number;
+  top: number;
+  left: number;
+}) {
+  const topFaceOffset = -(w - h) / 2;
+  const ringInset = Math.max(4, w * 0.045);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top,
+        left,
+        width: w,
+        height: h,
+        transformStyle: "preserve-3d",
+        transform: "rotateX(-30deg) rotateY(-45deg)",
+        zIndex: 1,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: topFaceOffset,
+          left: 0,
+          width: w,
+          height: w,
+          transform: `rotateX(90deg) translateZ(${h / 2}px)`,
+          borderRadius: w * 0.18,
+          background:
+            "linear-gradient(155deg,#5a78e6 0%, #2c3fae 55%, #1c2a86 100%)",
+          boxShadow: "0 0 0 1px rgba(255,255,255,.06) inset",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: ringInset,
+            borderRadius: w * 0.15,
+            border: `${Math.max(1.5, w * 0.013)}px solid rgba(210,225,255,.9)`,
+            boxShadow: `0 0 ${w * 0.04}px ${w * 0.008}px rgba(160,190,255,.9), 0 0 ${w * 0.09}px ${w * 0.03}px rgba(150,120,255,.5)`,
+            opacity: 0.9,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Cube4({
+  colour = "blue",
+  accentColour = "orange",
+  size = 110,
+  platform = true,
+}: {
+  colour?: CubeColour;
+  accentColour?: CubeColour;
+  size?: number;
+  platform?: boolean;
+}) {
+  const r = size / 150;
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: 480 * r,
+        height: 480 * r,
+        perspective: 1400,
+      }}
+    >
+      {platform && (
+        <Platform w={380 * r} h={60 * r} top={300 * r} left={50 * r} />
+      )}
+      <CubeUnit colour={colour} size={150 * r} top={0} left={165 * r} z={2} />
+      <CubeUnit
+        colour={colour}
+        size={150 * r}
+        top={120 * r}
+        left={35 * r}
+        z={3}
+      />
+      <CubeUnit
+        colour={colour}
+        size={150 * r}
+        top={120 * r}
+        left={295 * r}
+        z={3}
+      />
+      <CubeUnit
+        colour={accentColour}
+        size={150 * r}
+        top={210 * r}
+        left={165 * r}
+        z={5}
+        glow
+      />
+    </div>
   );
 }
