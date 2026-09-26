@@ -18,6 +18,11 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true
   },
+  advanced: {
+    database: {
+      generateId: "uuid",
+    }
+  },
   trustedOrigins: (process.env.CLIENT_ORIGIN ?? "").split(",").map((origin) => origin.trim()).filter(Boolean),
   plugins: [admin()],
 });

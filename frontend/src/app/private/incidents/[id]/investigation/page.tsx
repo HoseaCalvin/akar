@@ -69,14 +69,14 @@ export default function IncidentInvestigation({
   };
 
   return (
-    <main className="flex h-screen min-h-screen flex-col overflow-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)] text-[#172033]">
+    <main className="flex h-screen min-h-screen flex-col overflow-hidden text-[#172033]">
       <div className="shrink-0 px-5 pb-4 pt-4 md:px-7 md:pt-5">
         <header>
           <div className="flex items-center justify-between gap-5">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
-                onClick={() => router.push(`/private/incidents/${id}`)}
+                onClick={() => router.push(`/private/incidents/${id}/timeline`)}
                 aria-label="Go back"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-white"
               >

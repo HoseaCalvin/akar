@@ -46,12 +46,12 @@ export default function IncidentTimelineDetails({
   const { incident, event } = data;
 
   return (
-    <main className="main-container min-h-screen bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)] px-4 pb-5 pt-4 text-[#17294D] sm:px-5 md:px-7 lg:px-8">
+    <main className="main-container min-h-screen px-4 pb-5 pt-4 text-[#17294D] sm:px-5 md:px-7 lg:px-8">
       <header className="mb-5 flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
-            onClick={() => router.push(`/private/incidents/${id}`)}
+            onClick={() => router.push(`/private/incidents/${id}/timeline`)}
             aria-label="Go back"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:bg-white"
           >
@@ -261,7 +261,7 @@ export default function IncidentTimelineDetails({
               </h3>
 
               <Link
-                href={`/private/incidents/${id}`}
+                href={`/private/incidents/${id}/timeline`}
                 className="text-[11px] font-medium text-[#1670FF] hover:underline"
               >
                 Full timeline →

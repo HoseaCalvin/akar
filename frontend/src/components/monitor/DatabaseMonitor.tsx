@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Bell,
@@ -15,74 +15,9 @@ import {
 import TopBar from "@/components/TopBar";
 import EChart from "@/components/EChart";
 import type { EChartsOption } from "echarts";
-
-const STAT_CARDS = [
-  {
-    label: "Total Database",
-    value: 12,
-    icon: <Database className="h-5 w-5 text-blue-500" />,
-    bg: "bg-blue-100/80",
-    trend: null,
-  },
-  {
-    label: "Slow Queries",
-    value: "32",
-    icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-    bg: "bg-red-100/80",
-    trend: "+20%",
-    trendUp: true,
-  },
-  {
-    label: "Active Connections",
-    value: "483",
-    icon: <PlugZap className="h-5 w-5 text-purple-500" />,
-    bg: "bg-purple-100/80",
-    trend: "+11%",
-    trendUp: false,
-  },
-  {
-    label: "High CPU Usage",
-    value: 4,
-    icon: <Cpu className="h-5 w-5 text-orange-500" />,
-    bg: "bg-orange-100/80",
-    trend: "+80%",
-    trendUp: false,
-  },
-  {
-    label: "High Disk Usage",
-    value: 2,
-    icon: <HardDrive className="h-5 w-5 text-teal-500" />,
-    bg: "bg-teal-100/80",
-    trend: "+15%",
-    trendUp: true,
-  },
-];
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-];
-
-const RESOURCE_SERIES = {
-  cpu: [18, 22, 28, 35, 42, 38, 48, 45, 52],
-  memory: [25, 28, 24, 32, 30, 35, 28, 38, 35],
-  disk: [10, 15, 12, 18, 20, 16, 22, 18, 25],
-  io: [30, 25, 35, 28, 40, 32, 38, 45, 42],
-};
-
-const BACKUP_DATA = {
-  success: 5,
-  warning: 1,
-  failed: 2,
-  total: 8,
-};
+import { endpoint } from "@/lib/endpoint";
+import { DatabaseMetrics, DatabaseQueries, DatabaseStat } from "@/lib/types";
+import { getMilitaryTime } from "@/utils/helpers";
 
 const INCIDENTS = [
   {
@@ -197,7 +132,7 @@ function StatCard({
   bg,
   trend,
   trendUp,
-}: (typeof STAT_CARDS)[0]) {
+}: any) {
   return (
     <div
       className={`${GLASS_CARD} flex min-h-[90px] min-w-0 items-center gap-3 px-4 py-3.5`}
@@ -233,7 +168,7 @@ function StatCard({
   );
 }
 
-function BackupDonut({ data }: { data: typeof BACKUP_DATA }) {
+function BackupDonut({ data }: any) {
   const option: EChartsOption = {
     animation: false,
     series: [
@@ -321,124 +256,6 @@ function BackupDonut({ data }: { data: typeof BACKUP_DATA }) {
   );
 }
 
-function ResourceChart() {
-  const option: EChartsOption = {
-    animation: false,
-    grid: {
-      top: 16,
-      right: 12,
-      bottom: 42,
-      left: 42,
-    },
-    xAxis: {
-      type: "category",
-      data: MONTHS,
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLabel: {
-        color: "#94a3b8",
-        fontSize: 10,
-      },
-    },
-    yAxis: {
-      type: "value",
-      max: 100,
-      interval: 25,
-      axisLabel: {
-        color: "#94a3b8",
-        fontSize: 10,
-        formatter: "{value}%",
-      },
-      axisLine: {
-        show: false,
-      },
-      axisTick: {
-        show: false,
-      },
-      splitLine: {
-        lineStyle: {
-          color: "rgba(148,163,184,0.14)",
-        },
-      },
-    },
-    series: [
-      {
-        name: "CPU",
-        type: "line",
-        data: RESOURCE_SERIES.cpu,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          color: "#4f6df5",
-          width: 2.2,
-        },
-      },
-      {
-        name: "Memory",
-        type: "line",
-        data: RESOURCE_SERIES.memory,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          color: "#f59e0b",
-          width: 2.2,
-        },
-      },
-      {
-        name: "Disk",
-        type: "line",
-        data: RESOURCE_SERIES.disk,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          color: "#16a34a",
-          width: 2.2,
-        },
-      },
-      {
-        name: "I/O",
-        type: "line",
-        data: RESOURCE_SERIES.io,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          color: "#ef4444",
-          width: 2.2,
-        },
-      },
-    ],
-    legend: {
-      bottom: 3,
-      left: "center",
-      textStyle: {
-        color: "#64748b",
-        fontSize: 10,
-      },
-      icon: "circle",
-      itemWidth: 7,
-      itemHeight: 7,
-      itemGap: 22,
-    },
-    tooltip: {
-      trigger: "axis",
-    },
-  };
-
-  return (
-    <EChart
-      option={option}
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
-    />
-  );
-}
-
 function NotificationsCard() {
   return (
     <div className={`${GLASS_CARD} flex min-h-[539px] flex-col p-4`}>
@@ -490,7 +307,195 @@ function NotificationsCard() {
 }
 
 export default function DatabaseMonitor() {
+  const [databaseStats, setDatabaseStats] = useState<DatabaseStat | null>(null);
+  const [databaseMetrics, setDatabaseMetrics] = useState<DatabaseMetrics[] | null>(null);
+  const [databaseQueries, setDatabaseQueries] = useState<DatabaseQueries[] | null>(null);
   const [activeRootCause, setActiveRootCause] = useState(0);
+
+  useEffect(() => {
+    const fetchDatabaseStats = async () => {
+      const databaseStats = await endpoint.get<DatabaseStat>('/api/database/stats/get/6477801f-7386-4758-aad2-cc3c53c69605');
+
+      setDatabaseStats(databaseStats.data);
+    }
+
+    fetchDatabaseStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchDatabaseMetrics = async () => {
+      const databaseMetrics = await endpoint.get<DatabaseMetrics[]>('/api/database/metrics/get/c7eae74a-a8ee-4fe5-ba15-95f17d0c2de0');
+
+      setDatabaseMetrics(databaseMetrics.data);
+    }
+
+    const fetchDatabaseQueries = async () => {
+      const databaseQueries = await endpoint.get<DatabaseQueries[]>('/api/database/query/get/c7eae74a-a8ee-4fe5-ba15-95f17d0c2de0');
+
+      setDatabaseQueries(databaseQueries.data);      
+    }
+
+    fetchDatabaseMetrics();
+    fetchDatabaseQueries();
+  }, [databaseStats]);
+  
+  const STAT_CARDS = [
+    {
+      label: "Total Database",
+      value: databaseStats?.total_database,
+      icon: <Database className="h-5 w-5 text-blue-500" />,
+      bg: "bg-blue-100/80",
+      trend: null,
+    },
+    {
+      label: "Slow Queries",
+      value: databaseStats?.slow_queries,
+      icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+      bg: "bg-red-100/80",
+      trend: "+20%",
+      trendUp: true,
+    },
+    {
+      label: "Active Connections",
+      value: databaseStats?.active_connections,
+      icon: <PlugZap className="h-5 w-5 text-purple-500" />,
+      bg: "bg-purple-100/80",
+      trend: "+11%",
+      trendUp: false,
+    },
+    {
+      label: "High CPU Usage",
+      value: databaseStats?.high_cpu_usage,
+      icon: <Cpu className="h-5 w-5 text-orange-500" />,
+      bg: "bg-orange-100/80",
+      trend: "+80%",
+      trendUp: false,
+    },
+    {
+      label: "High Disk Usage",
+      value: databaseStats?.high_cpu_usage,
+      icon: <HardDrive className="h-5 w-5 text-teal-500" />,
+      bg: "bg-teal-100/80",
+      trend: "+15%",
+      trendUp: true,
+    },
+  ];
+
+  const BACKUP_DATA = {
+    success: databaseStats?.db_backup_monitoring[0].success_count,
+    warning: databaseStats?.db_backup_monitoring[0].warning_count,
+    failed: databaseStats?.db_backup_monitoring[0].failed_count,
+    total:
+      (databaseStats?.db_backup_monitoring[0].success_count ?? 0) +
+      (databaseStats?.db_backup_monitoring[0].warning_count ?? 0) +
+      (databaseStats?.db_backup_monitoring[0].failed_count ?? 0),
+  };
+
+  const option: EChartsOption = {
+    animation: false,
+    grid: {
+      top: 16,
+      right: 12,
+      bottom: 42,
+      left: 42,
+    },
+    xAxis: {
+      type: "category",
+      data: databaseMetrics?.map((data) => getMilitaryTime(data.time)),
+      axisLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      axisLabel: {
+        color: "#94a3b8",
+        fontSize: 10,
+      },
+    },
+    yAxis: {
+      type: "value",
+      max: 100,
+      interval: 25,
+      axisLabel: {
+        color: "#94a3b8",
+        fontSize: 10,
+        formatter: "{value}%",
+      },
+      axisLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      splitLine: {
+        lineStyle: {
+          color: "rgba(148,163,184,0.14)",
+        },
+      },
+    },
+    series: [
+      {
+        name: "CPU",
+        type: "line",
+        data: databaseMetrics?.map((data) => data.cpu),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          color: "#4f6df5",
+          width: 2.2,
+        },
+      },
+      {
+        name: "Memory",
+        type: "line",
+        data: databaseMetrics?.map((data) => data.memory),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          color: "#f59e0b",
+          width: 2.2,
+        },
+      },
+      {
+        name: "Disk",
+        type: "line",
+        data: databaseMetrics?.map((data) => data.disk),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          color: "#16a34a",
+          width: 2.2,
+        },
+      },
+      {
+        name: "I/O",
+        type: "line",
+        data: databaseMetrics?.map((data) => data.io),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          color: "#ef4444",
+          width: 2.2,
+        },
+      },
+    ],
+    legend: {
+      bottom: 3,
+      left: "center",
+      textStyle: {
+        color: "#64748b",
+        fontSize: 10,
+      },
+      icon: "circle",
+      itemWidth: 7,
+      itemHeight: 7,
+      itemGap: 22,
+    },
+    tooltip: {
+      trigger: "axis",
+    },
+  };
 
   return (
     <main className="relative flex min-h-full flex-col overflow-x-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF9_45%,#CAD6F4_100%)] px-5 pb-5 pt-6 sm:px-6 lg:px-7">
@@ -529,7 +534,13 @@ export default function DatabaseMonitor() {
               </div>
 
               <div className="mt-2 min-h-0 flex-1">
-                <ResourceChart />
+                <EChart
+                  option={option}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
               </div>
             </div>
 
@@ -621,13 +632,13 @@ export default function DatabaseMonitor() {
               </span>
 
               <span className="rounded-full bg-amber-100/80 px-3 py-1 font-semibold text-amber-600">
-                Elevated &gt; 2s
+                Others &gt; 2s
               </span>
             </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl">
-            <table className="w-full min-w-[680px] text-xs">
+            <table className="overflow-y-auto w-full min-w-[680px] max-h-[700px] text-xs">
               <thead>
                 <tr className="bg-blue-100/35 text-slate-500">
                   <th className="whitespace-nowrap px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-wide">
@@ -657,7 +668,7 @@ export default function DatabaseMonitor() {
               </thead>
 
               <tbody className="divide-y divide-white/60">
-                {SLOW_QUERIES.map((row, i) => (
+                {databaseQueries?.map((row, i) => (
                   <tr
                     key={i}
                     className="transition-colors hover:bg-white/30"
@@ -667,31 +678,31 @@ export default function DatabaseMonitor() {
                     </td>
 
                     <td className="px-3 py-2.5 text-[10px] text-slate-500">
-                      {row.db}
+                      {row.database}
                     </td>
 
                     <td className="px-3 py-2.5 text-[10px] text-slate-500">
-                      {row.user}
+                      {row.user_app}
                     </td>
 
                     <td className="px-3 py-2.5 text-[10px] font-semibold text-slate-700">
-                      {row.duration}
+                      {row.duration}s
                     </td>
 
                     <td className="px-3 py-2.5">
                       <span
                         className={`rounded-full px-2.5 py-1 text-[9px] font-semibold ${
-                          row.status === "Critical"
+                          row.severity.name === "Critical"
                             ? "bg-red-100/80 text-red-600"
                             : "bg-amber-100/80 text-amber-600"
                         }`}
                       >
-                        {row.status}
+                        {row.severity.name}
                       </span>
                     </td>
 
                     <td className="px-3 py-2.5 text-[10px] text-slate-400">
-                      {row.seen}
+                      {getMilitaryTime(row.last_seen)}
                     </td>
                   </tr>
                 ))}

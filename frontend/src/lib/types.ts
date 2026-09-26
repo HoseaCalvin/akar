@@ -1,9 +1,76 @@
-export type Severity = "Critical" | "High" | "Medium" | "Low";
+import { ReactNode } from "react";
+
 export type IncidentStatus = "Open" | "In Progress" | "Recovered" | "Resolved";
-export type ResourceKind = "pods" | "services";
+export type ResourceKind = "pods" | "services" | "databases" | "clusters";
 export type HighlightTone = "neutral" | "ok" | "warning" | "critical";
 export type LogLevel = "info" | "error" | "warn" | "debug";
 export type TopologyKind = "web" | "gateway" | "service" | "db";
+
+export type Cluster = {
+  id: string;
+  pod_count: number;
+  container_count: number;
+  service_count: number;
+  node_count: number;
+}
+
+export type ClusterSubsystems = {
+  pod_count: number;
+  container_count: number;
+  service_count: number;
+  node_count: number;
+}
+
+export type Infrastructure = {
+  id: string;
+  cluster_id?: string;
+  health: number;
+  mttd: number;
+  mttr: number;
+  rca_time: number;
+  user_id: string;
+}
+
+export type Metrics = {
+  mttd: number;
+  mttr: number;
+  rca_time: number;
+  time: string;
+}
+
+export type IncidentHeader = {
+  id: string;
+  code: string;
+  title: string;
+  namespace: string;
+  severity: Severity;
+  status: string;
+  cause: string;
+  cpu_usage: number;
+  memory_usage: number;
+  restart_count: number;
+  confidence: number;
+  start_time: string;
+  end_time: string;
+  affected_service: string;  
+}
+
+export type IncidentTimeline = {
+  time_log: string;
+  title: string;
+  description: string;
+  additional_description: string;
+}
+
+export type Severity = {
+  id: string;
+  name: string;
+}
+
+export type Message = {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export type HighlightStat = {
   title: string;
@@ -12,7 +79,39 @@ export type HighlightStat = {
   tone: HighlightTone;
 };
 
+export type DatabaseStat = {
+  total_database: number;
+  slow_queries: number;
+  active_connections: number;
+  high_cpu_usage: number;
+  high_disk_usage: number;
+  db_backup_monitoring: DbBackupMonitoring[];
+}
 
+export type DbBackupMonitoring = {
+  success_count: number;
+  warning_count: number;
+  failed_count: number;
+}
+
+export type DatabaseMetrics = {
+  cpu: number;
+  memory: number;
+  disk: number;
+  io: number;
+  time: string;
+}
+
+export interface DatabaseQueries {
+  query: string;
+  database: string;
+  user_app: string;
+  duration: string;
+  severity: {
+    name: string;
+  };
+  last_seen: string;
+}
 
 export type DirectoryCounts = {
   inventory: number;
@@ -126,11 +225,6 @@ export type TimelineEvent = {
   description: string[];
   color: string;
   details: TimelineDetailField[];
-};
-
-export type IncidentTimeline = {
-  incident: IncidentDetail;
-  events: TimelineEvent[];
 };
 
 export type ConfigLine = {

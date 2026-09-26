@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import AkarLogo from "../../../../public/akar.png";
 import {
   Paperclip,
   Settings,
@@ -13,7 +12,6 @@ import {
   User,
 } from "lucide-react";
 import TopBar from "@/components/TopBar";
-
 
 type MessageRole = "ai" | "user";
 
@@ -135,7 +133,7 @@ function AiMessage({ msg }: { msg: Message }) {
   return (
     <div className="flex gap-3 items-start">
       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1a2f6e] to-[#2a4fbe] flex items-center justify-center flex-shrink-0 shadow-sm">
-        <Image src={AkarLogo} alt="AKAR AI" className="w-5 h-5 object-contain" />
+        <Image src='/akar-logo.png' alt="AKAR AI" className="w-5 h-5 object-contain" height={80} width={80}/>
       </div>
 
       <div className="flex-1 max-w-[82%]">
@@ -199,9 +197,11 @@ function EmptyState() {
     <div className="flex flex-1 flex-col items-center justify-center gap-6 pb-12">
       <div className="w-32 h-32 flex items-center justify-center">
         <Image
-          src={AkarLogo}
+          src='/akar-logo.png'
           alt="AKAR"
           className="w-28 h-28 object-contain drop-shadow-[0_0_24px_rgba(255,200,80,0.55)]"
+          width={100}
+          height={100}
         />
       </div>
       <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
@@ -312,7 +312,7 @@ export default function AiAnalytics() {
   }
 
   return (
-    <main className="relative flex min-h-full flex-col bg-gradient-to-b from-[#eef2fb] to-white">
+    <main className="relative flex min-h-full flex-col">
 
       <TopBar />
 
